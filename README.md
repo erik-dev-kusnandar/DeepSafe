@@ -111,6 +111,20 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
+## 📖 Citing DeepSafe
+
+If you find DeepSafe useful in your research or work, please consider citing it:
+
+```bibtex
+@misc{deepsafe,
+  author = {Siddharth Kumar},
+  title = {DeepSafe: Enterprise-Grade Deepfake Detection Platform},
+  year = {2025},
+  publisher = {GitHub},
+  url = {https://github.com/siddharthksah/DeepSafe}
+}
+```
+
 ## 🏆 Credits
 
 DeepSafe integrates and builds upon the following excellent open-source research:
