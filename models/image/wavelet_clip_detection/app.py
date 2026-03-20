@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 from typing import Dict, Any, Optional
+import numpy as np
 
 # Configure logging
 logging.basicConfig(
@@ -273,7 +274,7 @@ def ensure_model_loaded():
 
 def unload_model_if_idle():
     """Unloads the model if it has been idle for longer than MODEL_TIMEOUT."""
-    global model, last_used_time
+    global model
     if model is None or PRELOAD_MODEL:  # Don't unload if preloaded or already unloaded
         return
 

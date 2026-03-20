@@ -191,7 +191,7 @@ def load_model():
 @app.post("/unload", include_in_schema=True)
 async def unload_model_endpoint():
     """Endpoint to manually unload the model."""
-    global model, model_loading
+    global model
 
     if model_loading:
         return {
@@ -225,7 +225,7 @@ async def unload_model_endpoint():
 
 def unload_model_if_idle():
     """Unload model if it's been idle for too long."""
-    global model, last_used_time
+    global model
 
     if model is None:
         return
@@ -313,7 +313,7 @@ def read_root():
 # Health check endpoint
 @app.get("/health")
 def health_check():
-    global model, model_loading
+
 
     weights_path = "universalfakedetect/pretrained_weights/fc_weights.pth"
     model_file_exists = os.path.exists(weights_path)

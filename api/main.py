@@ -48,7 +48,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, status
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from database import init_db, get_db, AnalysisHistory
+from database import init_db, get_db, SessionLocal, AnalysisHistory
 
 # --- Logging Configuration ---
 logging.basicConfig(
@@ -246,8 +246,6 @@ async def startup_event_api():
     # Initialize database
     init_db()
     logger.info("Database initialized successfully")
-
-    global meta_learners, meta_scalers, meta_imputers, meta_feature_columns_map
 
     if not SUPPORTED_MEDIA_TYPES:
         logger.error(

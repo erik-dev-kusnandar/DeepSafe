@@ -162,7 +162,7 @@ def ensure_model_loaded():
 
 
 def unload_model_if_idle():
-    global model_instance, last_used_time
+    global model_instance
     if model_instance is None or PRELOAD_MODEL:
         return
 

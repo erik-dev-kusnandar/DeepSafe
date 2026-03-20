@@ -279,7 +279,7 @@ def ensure_model_loaded_ucf():
 
 
 def unload_model_if_idle_ucf():
-    global model_instance_ucf, last_used_time_ucf, ucf_image_preprocessor_fn
+    global model_instance_ucf, ucf_image_preprocessor_fn
     if model_instance_ucf is None or PRELOAD_MODEL:
         return
     with model_lock_ucf:

@@ -272,7 +272,7 @@ def ensure_model_loaded(variant_to_load: str):
 
 
 def unload_model_if_idle():
-    global model_instance, model_config_loaded, model_variant_loaded, last_used_time
+    global model_instance, model_config_loaded, model_variant_loaded
     # Removed face_detector_mtcnn, face_transform_pipeline from global to avoid unsetting them if shared
     if model_instance is None or PRELOAD_MODEL:
         return

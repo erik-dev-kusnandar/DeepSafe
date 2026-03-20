@@ -133,7 +133,7 @@ from rich.progress import (
 import matplotlib.pyplot as plt
 import seaborn as sns
 import itertools
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Tuple
 
 # --- Optional Advanced Hyperparameter Optimization & Models ---
 OPTIMIZER_CHOICE_DEFAULT = "optuna"

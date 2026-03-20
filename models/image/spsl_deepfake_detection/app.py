@@ -292,7 +292,7 @@ def ensure_model_loaded():
 
 
 def unload_model_if_idle():
-    global model_instance, last_used_time, spsl_rgb_preprocessor_fn
+    global model_instance, spsl_rgb_preprocessor_fn
     if model_instance is None or PRELOAD_MODEL:
         return
     with model_lock:

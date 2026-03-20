@@ -215,7 +215,7 @@ def ensure_model_loaded():
 
 def unload_model_if_idle():
     """Unloads the model if it has been idle for longer than MODEL_TIMEOUT."""
-    global model, preprocessing_fn, fabric, last_used_time
+    global model, preprocessing_fn, fabric
     if model is None or PRELOAD_MODEL:  # Don't unload if preloaded or already unloaded
         return
 

@@ -166,7 +166,7 @@ def ensure_model_loaded():
 
 
 def unload_model_if_idle():
-    global model, last_used_time
+    global model
     if model is None or PRELOAD_MODEL:
         return
     with model_lock:
