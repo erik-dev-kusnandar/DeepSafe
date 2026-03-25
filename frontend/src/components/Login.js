@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import config from '../config';
+
 const Login = ({ onLogin }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -18,7 +20,7 @@ const Login = ({ onLogin }) => {
             formData.append('username', username);
             formData.append('password', password);
 
-            const response = await fetch('http://localhost:8000/token', {
+            const response = await fetch(`${config.API_BASE_URL}/token`, {
                 method: 'POST',
                 body: formData,
             });

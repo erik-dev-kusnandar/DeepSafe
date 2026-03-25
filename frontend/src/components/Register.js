@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import config from '../config';
 
 const Register = ({ onLogin }) => {
     const [username, setUsername] = useState('');
@@ -24,7 +25,7 @@ const Register = ({ onLogin }) => {
             formData.append('username', username);
             formData.append('password', password);
 
-            const response = await fetch('http://localhost:8000/register', {
+            const response = await fetch(`${config.API_BASE_URL}/register`, {
                 method: 'POST',
                 body: formData,
             });
