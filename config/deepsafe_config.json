@@ -23,10 +23,10 @@
     },
     "video": {
       "model_endpoints": {
-        "video-detect": "http://video-detect:7001/predict"
+        "cross_efficient_vit": "http://video-detect:7001/predict"
       },
       "health_endpoints": {
-        "video-detect": "http://video-detect:7001/health"
+        "cross_efficient_vit": "http://video-detect:7001/health"
       },
       "supported_extensions": [
         "*.mp4",
