@@ -16,7 +16,7 @@ services:
     depends_on:
       - npr_deepfakedetection
       - universalfakedetect
-      - cross_efficient_vit
+      - video-detect
     networks:
       - deepsafe-network
 
@@ -121,25 +121,16 @@ services:
   #   networks:
   #     - deepsafe-network
 
-  cross_efficient_vit:
+  video-detect:
     build: ./models/video/cross_efficient_vit
-    container_name: deepsafe-cross-efficient-vit
     ports:
-      - "7001:7001"
+      - 7001:7001
     restart: unless-stopped
     environment:
       - MODEL_PORT=7001
       - PRELOAD_MODEL=false
-      - MODEL_TIMEOUT=900 # Video models might be heavier, allow longer idle time
-      - USE_GPU=false # Ensure CPU operation
-      # The following are set within the cross_efficient_vit/Dockerfile,
-      # but can be overridden here if needed for different weight files for the same image:
-      # - DEFAULT_MODEL_VARIANT="cross_efficient_vit" 
-      # - CROSS_EFFICIENT_VIT_MODEL_PATH="/app/model_code/cross-efficient-vit/pretrained_models/cross_efficient_vit.pth"
-      # - EFFICIENT_VIT_MODEL_PATH="/app/model_code/efficient-vit/pretrained_models/efficient_vit.pth"
-      # - CROSS_EFFICIENT_VIT_CONFIG_PATH="/app/model_code/cross-efficient-vit/configs/architecture.yaml"
-      # - EFFICIENT_VIT_CONFIG_PATH="/app/model_code/efficient-vit/configs/architecture.yaml"
-      # - FRAMES_PER_VIDEO="15" # If you want to control frame sampling from docker-compose
+      - MODEL_TIMEOUT=900
+      - USE_GPU=false
     networks:
       - deepsafe-network
     # Optional: Add resource limits for CPU/memory if this model is resource-intensive

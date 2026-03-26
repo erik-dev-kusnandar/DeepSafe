@@ -1,5 +1,6 @@
 # Use a Python slim base image
-FROM python:3.9-slim
+# Use a more robust base image than slim
+FROM python:3.9-bullseye
 
 WORKDIR /app
 
@@ -29,9 +30,9 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir \
-    torch==1.11.0 \
-    torchvision==0.12.0 \
-    torchaudio==0.11.0 \
+    torch==1.12.1 \
+    torchvision==0.13.1 \
+    torchaudio==0.12.1 \
     --index-url https://download.pytorch.org/whl/cpu
 
 # NumPy version will be handled by requirements.txt now
