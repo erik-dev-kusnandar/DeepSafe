@@ -693,9 +693,9 @@ def calculate_ensemble_verdict_api(
             )
         else:
             logger.warning(
-                f"Request {request_id}: Stacking ensemble for '{media_type}' requested, but artifacts not loaded. Falling back to 'voting'."
+                f"Request {request_id}: Stacking ensemble for '{media_type}' requested, but artifacts not loaded. Falling back to 'average'."
             )
-            actual_method_used = "voting"
+            actual_method_used = "average"
 
     if actual_method_used == "voting":
         if total_valid_models > 0:
