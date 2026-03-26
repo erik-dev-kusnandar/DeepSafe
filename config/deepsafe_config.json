@@ -23,12 +23,10 @@
     },
     "video": {
       "model_endpoints": {
-        "cross_efficient_vit": "http://cross_efficient_vit:7001/predict",
-        "fake_stormer": "http://fake_stormer:7002/predict"
+        "cross_efficient_vit": "http://cross_efficient_vit:7001/predict"
       },
       "health_endpoints": {
-        "cross_efficient_vit": "http://cross_efficient_vit:7001/health",
-        "fake_stormer": "http://fake_stormer:7002/health"
+        "cross_efficient_vit": "http://cross_efficient_vit:7001/health"
       },
       "supported_extensions": [
         "*.mp4",
@@ -38,12 +36,8 @@
       ]
     },
     "audio": {
-      "model_endpoints": {
-        "vocoder_artifacts": "http://vocoder_artifacts:8001/predict"
-      },
-      "health_endpoints": {
-        "vocoder_artifacts": "http://vocoder_artifacts:8001/health"
-      },
+      "model_endpoints": {},
+      "health_endpoints": {},
       "supported_extensions": [
         "*.mp3",
         "*.wav",

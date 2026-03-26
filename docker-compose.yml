@@ -16,7 +16,7 @@ services:
     depends_on:
       - npr_deepfakedetection
       - universalfakedetect
-      # Add other future video/audio model service names here
+      - cross_efficient_vit
     networks:
       - deepsafe-network
 
