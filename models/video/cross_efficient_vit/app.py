@@ -392,11 +392,10 @@ def process_video_and_predict(
                     # elif h_face < w_face:
                     #     pad_h_local = int((w_face - h_face) / 2)
 
-                    # Option 2: Proportional padding (as in user's existing code)
-                    # This provides more context around the face.
-                    # CRITICAL: This padding MUST match the training data generation.
-                    pad_h_local = h_face // 3
-                    pad_w_local = w_face // 3
+                    # Proportional padding (tightened to 15% per side, matching typical FF++ training)
+                    # This prevents capturing too much confusing background context
+                    pad_h_local = int(h_face * 0.15)
+                    pad_w_local = int(w_face * 0.15)
 
                     crop_xmin = max(0, xmin - pad_w_local)
                     crop_ymin = max(0, ymin - pad_h_local)
