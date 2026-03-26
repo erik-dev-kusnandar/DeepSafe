@@ -3,7 +3,7 @@ services:
     build: ./api
     container_name: deepsafe-api
     ports:
-      - "8001:8000"
+      - "${PORT:-8001}:8000"
     restart: unless-stopped
     volumes:
       - ./api/meta_model_artifacts:/app/meta_model_artifacts:ro
@@ -25,13 +25,13 @@ services:
     build: ./models/image/npr_deepfakedetection
     container_name: deepsafe-npr_deepfakedetection
     ports:
-      - "5001:5001"
+      - "${NPR_PORT:-5001}:5001"
     restart: unless-stopped
     environment:
       - MODEL_PORT=5001
       - PRELOAD_MODEL=false
-      - MODEL_TIMEOUT=600
-      - USE_GPU=false
+      - MODEL_TIMEOUT=${MODEL_TIMEOUT:-600}
+      - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
 
@@ -69,13 +69,13 @@ services:
     build: ./models/image/universalfakedetect
     container_name: deepsafe-universalfakedetect
     ports:
-      - "5004:5004"
+      - "${UNIVERSAL_PORT:-5004}:5004"
     restart: unless-stopped
     environment:
       - MODEL_PORT=5004
       - PRELOAD_MODEL=false
-      - MODEL_TIMEOUT=600
-      - USE_GPU=false
+      - MODEL_TIMEOUT=${MODEL_TIMEOUT:-600}
+      - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
 
@@ -124,13 +124,13 @@ services:
   video-detect:
     build: ./models/video/cross_efficient_vit
     ports:
-      - 7001:7001
+      - "${VIDEO_PORT:-7001}:7001"
     restart: unless-stopped
     environment:
       - MODEL_PORT=7001
       - PRELOAD_MODEL=false
       - MODEL_TIMEOUT=900
-      - USE_GPU=false
+      - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
     # Optional: Add resource limits for CPU/memory if this model is resource-intensive
