@@ -4,11 +4,13 @@
     "image": {
       "model_endpoints": {
         "npr_deepfakedetection": "http://127.0.0.1:5001/predict",
-        "universalfakedetect": "http://127.0.0.1:5004/predict"
+        "universalfakedetect": "http://127.0.0.1:5004/predict",
+        "trufor": "http://127.0.0.1:5005/predict"
       },
       "health_endpoints": {
         "npr_deepfakedetection": "http://127.0.0.1:5001/health",
-        "universalfakedetect": "http://127.0.0.1:5004/health"
+        "universalfakedetect": "http://127.0.0.1:5004/health",
+        "trufor": "http://127.0.0.1:5005/health"
       },
       "supported_extensions": [
         "*.jpg",

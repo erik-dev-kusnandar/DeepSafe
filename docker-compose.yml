@@ -17,6 +17,7 @@ services:
       - npr_deepfakedetection
       - universalfakedetect
       - video-detect
+      - trufor
     networks:
       - deepsafe-network
 
@@ -79,19 +80,19 @@ services:
     networks:
       - deepsafe-network
 
-  # trufor:
-  #   build: ./models/image/trufor
-  #   container_name: deepsafe-trufor
-  #   ports:
-  #     - "5005:5005"
-  #   restart: unless-stopped
-  #   environment:
-  #     - MODEL_PORT=5005
-  #     - PRELOAD_MODEL=false
-  #     - MODEL_TIMEOUT=600
-  #     - USE_GPU=false
-  #   networks:
-  #     - deepsafe-network
+  trufor:
+    build: ./models/image/trufor
+    container_name: deepsafe-trufor
+    ports:
+      - "5005:5005"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=5005
+      - PRELOAD_MODEL=false
+      - MODEL_TIMEOUT=600
+      - USE_GPU=false
+    networks:
+      - deepsafe-network
 
   # spsl_deepfake_detection:
   #   build: ./models/image/spsl_deepfake_detection
