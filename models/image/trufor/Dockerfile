@@ -26,9 +26,6 @@ RUN pip install --no-cache-dir mmcv-full==1.5.3 -f https://download.openmmlab.co
 # Install other Python dependencies from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Fix "cannot enable executable stack" error for libtorch
-RUN execstack -c /usr/local/lib/python3.9/site-packages/torch/lib/*.so
-
 # Clone the TruFor repository into a specific directory
 RUN git clone https://github.com/grip-unina/TruFor.git trufor_model_code
 
@@ -68,6 +65,12 @@ ENV MODEL_TIMEOUT=600
 
 # Expose the application port
 EXPOSE ${MODEL_PORT}
+
+# Final fix for "cannot enable executable stack" error in WSL2/Docker
+# We run this on all torch, torchvision and mmcv shared libraries
+RUN execstack -c /usr/local/lib/python3.9/site-packages/torch/lib/*.so && \
+    execstack -c /usr/local/lib/python3.9/site-packages/torch/_C*.so && \
+    execstack -c /usr/local/lib/python3.9/site-packages/mmcv/_ext.cpython*.so || true
 
 # Command to run the application
 CMD ["python", "app.py"]
