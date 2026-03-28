@@ -1,0 +1,57 @@
+{
+  "api_url": "http://127.0.0.1:8000",
+  "media_types": {
+    "image": {
+      "model_endpoints": {
+        "npr_deepfakedetection": "http://127.0.0.1:5001/predict",
+        "universalfakedetect": "http://127.0.0.1:5004/predict"
+      },
+      "health_endpoints": {
+        "npr_deepfakedetection": "http://127.0.0.1:5001/health",
+        "universalfakedetect": "http://127.0.0.1:5004/health"
+      },
+      "supported_extensions": [
+        "*.jpg",
+        "*.jpeg",
+        "*.png",
+        "*.webp",
+        "*.bmp",
+        "*.gif",
+        "*.tiff",
+        "*.tif"
+      ]
+    },
+    "video": {
+      "model_endpoints": {
+        "cross_efficient_vit": "http://127.0.0.1:7001/predict"
+      },
+      "health_endpoints": {
+        "cross_efficient_vit": "http://127.0.0.1:7001/health"
+      },
+      "supported_extensions": [
+        "*.mp4",
+        "*.avi",
+        "*.mov",
+        "*.mkv"
+      ]
+    },
+    "audio": {
+      "model_endpoints": {},
+      "health_endpoints": {},
+      "supported_extensions": [
+        "*.mp3",
+        "*.wav",
+        "*.flac",
+        "*.aac",
+        "*.ogg"
+      ]
+    }
+  },
+  "default_output_dir_base": "./deepsafe_test_results",
+  "default_threshold": 0.45,
+  "default_ensemble_method": "average",
+  "default_api_timeout_seconds": 1200,
+  "default_model_timeout_seconds_video": 1800,
+  "memory_optimization": true,
+  "default_max_workers_batch": 1
+}

@@ -156,7 +156,8 @@ function Dashboard({ onLogout }) {
     const renderResults = () => {
         if (!results) return null;
         const isFake = results.is_likely_deepfake;
-        const confidence = (results.deepfake_probability * 100).toFixed(1);
+        const prob = results.deepfake_probability;
+        const confidence = (isFake ? prob * 100 : (1 - prob) * 100).toFixed(1);
         const verdictColor = isFake ? 'var(--danger)' : 'var(--success)';
         const verdictText = isFake ? 'FAKE' : 'REAL';
 

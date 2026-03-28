@@ -9,10 +9,21 @@ __pycache__/
 # Node
 node_modules/
 
+# Python Virtual Environment
+venv/
+.venv/
+env/
+
 # Model weights (large files)
 models/audio/vocoder_artifacts/models/*.pth
 models/audio/vocoder_artifacts/temp_repo/
 
+# Databases
+*.db
+*.sqlite3
+
 # Artifacts
 walkthrough.md
 VERIFICATION.md
+implementation_plan.md
+task.md
