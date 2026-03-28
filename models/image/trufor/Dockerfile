@@ -9,6 +9,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git wget unzip build-essential python3-pip \
     libsm6 libxext6 libxrender-dev \
+    prelink \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -24,6 +25,9 @@ RUN pip install --no-cache-dir mmcv-full==1.5.3 -f https://download.openmmlab.co
 
 # Install other Python dependencies from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Fix "cannot enable executable stack" error for libtorch
+RUN execstack -c /usr/local/lib/python3.9/site-packages/torch/lib/*.so
 
 # Clone the TruFor repository into a specific directory
 RUN git clone https://github.com/grip-unina/TruFor.git trufor_model_code
