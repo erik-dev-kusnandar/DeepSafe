@@ -1,5 +1,5 @@
-# Use a slim Python base image
-FROM python:3.9-slim
+# Use a stable Python base image (Debian Bullseye)
+FROM python:3.9-slim-bullseye
 
 WORKDIR /app
 
@@ -9,7 +9,6 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git wget unzip build-essential python3-pip \
     libsm6 libxext6 libxrender-dev \
-    prelink \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -65,12 +64,6 @@ ENV MODEL_TIMEOUT=600
 
 # Expose the application port
 EXPOSE ${MODEL_PORT}
-
-# Final fix for "cannot enable executable stack" error in WSL2/Docker
-# We run this on all torch, torchvision and mmcv shared libraries
-RUN execstack -c /usr/local/lib/python3.9/site-packages/torch/lib/*.so && \
-    execstack -c /usr/local/lib/python3.9/site-packages/torch/_C*.so && \
-    execstack -c /usr/local/lib/python3.9/site-packages/mmcv/_ext.cpython*.so || true
 
 # Command to run the application
 CMD ["python", "app.py"]
