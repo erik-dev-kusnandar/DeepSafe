@@ -111,31 +111,38 @@ SUPPORTED_MEDIA_TYPES: List[str] = []
 
 CONFIG_FILE_PATH_FROM_ENV = get_environment_variable("DEEPSAFE_CONFIG_FILE_PATH")
 
-if CONFIG_FILE_PATH_FROM_ENV and os.path.exists(CONFIG_FILE_PATH_FROM_ENV):
-    logger.info(f"Loading configuration from: {CONFIG_FILE_PATH_FROM_ENV}")
-    try:
-        with open(CONFIG_FILE_PATH_FROM_ENV, "r") as f_config:
-            loaded_json = json.load(f_config)
-        ALL_MODEL_CONFIGS = loaded_json
-        SUPPORTED_MEDIA_TYPES = list(ALL_MODEL_CONFIGS.get("media_types", {}).keys())
-        if not SUPPORTED_MEDIA_TYPES:
-            logger.error(
-                f"FATAL: 'media_types' key missing or empty in {CONFIG_FILE_PATH_FROM_ENV}."
-            )
-            ALL_MODEL_CONFIGS = {"media_types": {}}
-        else:
-            logger.info(f"Active media types: {SUPPORTED_MEDIA_TYPES}")
-    except json.JSONDecodeError as e:
-        logger.error(f"FATAL: Malformed JSON in config file: {e}.")
-        ALL_MODEL_CONFIGS = {"media_types": {}}
-    except Exception as e:
-        logger.error(f"FATAL: Config load failure: {e}.")
-        ALL_MODEL_CONFIGS = {"media_types": {}}
-else:
-    logger.error(
-        f"FATAL: Configuration file not found at '{CONFIG_FILE_PATH_FROM_ENV}'. Service cannot start."
-    )
-    ALL_MODEL_CONFIGS = {"media_types": {}}
+def load_deepsafe_config() -> Tuple[Dict[str, Any], List[str]]:
+    """Tries to load configuration from env var, or falls back to common local paths."""
+    search_paths = []
+    if CONFIG_FILE_PATH_FROM_ENV:
+        search_paths.append(CONFIG_FILE_PATH_FROM_ENV)
+    
+    # Common local development fallbacks
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    search_paths.extend([
+        os.path.join(base_dir, "config", "deepsafe_config.local.json"),
+        os.path.join(base_dir, "config", "deepsafe_config.json"),
+        "config/deepsafe_config.local.json",
+        "config/deepsafe_config.json"
+    ])
+
+    for path in search_paths:
+        if os.path.exists(path):
+            logger.info(f"Loading configuration from: {path}")
+            try:
+                with open(path, "r") as f_config:
+                    all_configs = json.load(f_config)
+                m_types = list(all_configs.get("media_types", {}).keys())
+                if m_types:
+                    return all_configs, m_types
+                logger.warning(f"Config at {path} has no 'media_types'.")
+            except Exception as e:
+                logger.error(f"Error reading config at {path}: {e}")
+    
+    logger.error("FATAL: No valid configuration file found in search paths.")
+    return {"media_types": {}}, []
+
+ALL_MODEL_CONFIGS, SUPPORTED_MEDIA_TYPES = load_deepsafe_config()
 
 DEFAULT_TIMEOUT: int = int(ALL_MODEL_CONFIGS.get("default_api_timeout_seconds", 1200))
 MAX_RETRIES: int = int(ALL_MODEL_CONFIGS.get("default_max_retries", 1))
@@ -674,23 +681,33 @@ def calculate_ensemble_verdict_api(
         feature_cols = meta_feature_columns_map.get(media_type)
 
         if learner and scaler and imputer and feature_cols:
-            feature_vector_values = []
-            for model_col_name_from_training in feature_cols:
-                base_model_name = model_col_name_from_training.replace("_prob", "")
-                model_res = valid_results.get(base_model_name)
-                if model_res and model_res.get("probability") is not None:
-                    feature_vector_values.append(model_res["probability"])
-                else:
-                    feature_vector_values.append(np.nan)
+            # Check if all models in feature_cols are in valid_results.
+            # If we have a new model (like trufor) that IS NOT in feature_cols,
+            # it means the stacking model wasn't trained with it.
+            # In that case, we should probably fallback to 'average' to include the new model's voice.
+            current_model_names = set(valid_results.keys())
+            trained_model_names = {col.replace("_prob", "") for col in feature_cols}
+            
+            if not current_model_names.issubset(trained_model_names):
+                logger.warning(
+                    f"Request {request_id}: Stacking requested, but some active models {current_model_names - trained_model_names} "
+                    f"are not in the meta-learner features. Falling back to 'average' for consistent results."
+                )
+                actual_method_used = "average"
+            else:
+                feature_vector_values = []
+                for model_col_name_from_training in feature_cols:
+                    base_model_name = model_col_name_from_training.replace("_prob", "")
+                    model_res = valid_results.get(base_model_name)
+                    if model_res and model_res.get("probability") is not None:
+                        feature_vector_values.append(model_res["probability"])
+                    else:
+                        feature_vector_values.append(np.nan)
 
-            feature_df = pd.DataFrame([feature_vector_values], columns=feature_cols)
-
-            imputed_features = imputer.transform(feature_df)
-            scaled_features = scaler.transform(imputed_features)
-
-            ensemble_prob_fake_score = float(
-                learner.predict_proba(scaled_features)[0, 1]
-            )
+                feature_df = pd.DataFrame([feature_vector_values], columns=feature_cols)
+                imputed_features = imputer.transform(feature_df)
+                scaled_features = scaler.transform(imputed_features)
+                ensemble_prob_fake_score = float(learner.predict_proba(scaled_features)[0, 1])
         else:
             logger.warning(
                 f"Request {request_id}: Stacking ensemble for '{media_type}' requested, but artifacts not loaded. Falling back to 'average'."
