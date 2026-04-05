@@ -1,3 +1,4 @@
+# DeepSafe API Gateway Requirements
 fastapi==0.103.1
 uvicorn==0.23.2
 pydantic==2.3.0
@@ -15,4 +16,4 @@ python-jose[cryptography]
 passlib[bcrypt]
 sqlalchemy==2.0.21
 opencv-python-headless==4.8.0.76
-numpy==1.24.3
+numpy==2.0.0
