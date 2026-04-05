@@ -5,9 +5,17 @@
 
 echo "Downloading DeepSafe Model Weights..."
 
+# Ensure we are running from the project root (one level up from scripts/)
+cd "$(dirname "$0")/.." || exit
+
+echo "Current directory: $(pwd)"
+
 # Directory setup
 mkdir -p models/image/wavelet_clip_detection/model_code/weights
 mkdir -p models/video/cross_efficient_vit/model_code/gdrive_weights
+mkdir -p models/video/fake_stormer/model_code/weights
+mkdir -p models/video/RawNet3/model_code/weights
+mkdir -p models/video/aasist/model_code/weights
 
 # Wavelet-CLIP Weights
 echo "------------------------------------------------"

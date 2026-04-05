@@ -36,6 +36,8 @@ import joblib
 import numpy as np
 import pandas as pd
 import json
+import cv2
+import tempfile
 
 import sys
 
@@ -58,6 +60,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 rich_console = RichConsole(width=120)
+
+# Load Haar Cascade for Face Detection (Global)
+face_cascade_path = os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
+face_detector = cv2.CascadeClassifier(face_cascade_path)
+if face_detector.empty():
+    logger.error(f"Failed to load face detector from {face_cascade_path}")
+else:
+    logger.info("Face detector (Haar Cascades) loaded successfully.")
 
 # --- Constants for Payload Keys and Media Handling ---
 MEDIA_TYPE_PAYLOAD_KEYS: Dict[str, str] = {
@@ -524,6 +534,67 @@ class PredictInput(BaseModel):
         return v_media_data
 
 
+# --- Video Processing Helpers ---
+def extract_keyframes_from_video_base64(encoded_video: str, num_frames: int = 5) -> Tuple[List[str], bool]:
+    """
+    Extracts N equidistant frames from a base64 encoded video.
+    Also returns whether a face was detected in any of the frames.
+    """
+    try:
+        video_bytes = base64.b64decode(encoded_video)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_video:
+            tmp_video.write(video_bytes)
+            tmp_video_path = tmp_video.name
+
+        cap = cv2.VideoCapture(tmp_video_path)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        if total_frames <= 0:
+            return [], False
+
+        frame_indices = np.linspace(0, total_frames - 1, num_frames, dtype=int)
+        extracted_frames_b64 = []
+        face_found_anywhere = False
+
+        for idx in frame_indices:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+            ret, frame = cap.read()
+            if ret:
+                # 1. Stricter Face Detection (Mode Galak)
+                if not face_found_anywhere and not face_detector.empty():
+                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    # Increased scaleFactor to 1.1, minNeighbors to 8, and added minSize
+                    faces = face_detector.detectMultiScale(
+                        gray, 
+                        scaleFactor=1.1, 
+                        minNeighbors=8, 
+                        minSize=(80, 80)
+                    )
+                    if len(faces) > 0:
+                        face_found_anywhere = True
+                        logger.info(f"Confirmed HUMAN face detection in frame.")
+
+                # 2. Convert BGR (OpenCV) to RGB for TruFor
+                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pil_img = Image.fromarray(rgb_frame)
+                
+                # Encode back to base64
+                buffer = io.BytesIO()
+                pil_img.save(buffer, format="JPEG")
+                frame_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+                extracted_frames_b64.append(frame_b64)
+            
+        cap.release()
+        try:
+            os.unlink(tmp_video_path)
+        except:
+            pass
+            
+        return extracted_frames_b64, face_found_anywhere
+    except Exception as e:
+        logger.error(f"Error extracting video frames: {e}")
+        return [], False
+
+
 # --- Helper Functions for Model Interaction and Ensembling ---
 def check_model_health_api(model_name: str, media_type: str) -> Dict[str, Any]:
     media_type_config = ALL_MODEL_CONFIGS.get("media_types", {}).get(media_type, {})
@@ -962,6 +1033,16 @@ async def predict_media_endpoint_api(request: Request, input_data: PredictInput)
 
     start_overall_time = time.time()
     model_query_results: Dict[str, Dict] = {}
+    
+    # Video Pre-processing (Face Detection)
+    video_face_found = True
+    video_frames = []
+    if media_type == "video":
+        logger.info(f"Request {req_id}: Checking for faces in video to determine model suitability...")
+        video_frames, video_face_found = extract_keyframes_from_video_base64(encoded_media_content, num_frames=5)
+        if not video_face_found:
+            logger.info(f"Request {req_id}: NO faces detected in video. Face-centric models will be skipped.")
+
     for model_name in models_to_use_names:
         if model_name not in model_endpoints_for_type:
             logger.warning(
@@ -971,9 +1052,43 @@ async def predict_media_endpoint_api(request: Request, input_data: PredictInput)
                 "error": f"Model '{model_name}' not configured for media_type '{media_type}'."
             }
             continue
-        model_query_results[model_name] = query_model_api(
-            model_name, media_type, encoded_media_content, input_data.threshold, req_id
-        )
+
+        # Face-Aware Model Filtering
+        if media_type == "video" and not video_face_found and model_name == "cross_efficient_vit":
+            logger.info(f"Request {req_id}: Skipping '{model_name}' because NO face was detected.")
+            continue
+
+        if model_name == "trufor" and media_type == "video":
+            # Specialized handler for TruFor on Video (Frame Sampling)
+            logger.info(f"Request {req_id}: Using forensic frame-sampling for TruFor on video.")
+            # Reuse pre-extracted frames if available
+            frames_to_use = video_frames if video_frames else extract_keyframes_from_video_base64(encoded_media_content, num_frames=5)[0]
+            if not frames_to_use:
+                model_query_results[model_name] = {"error": "Failed to extract frames for TruFor analysis."}
+                continue
+                
+            frame_results = []
+            for i, f_data in enumerate(frames_to_use):
+                res = query_model_api(model_name, "image", f_data, input_data.threshold, f"{req_id}_f{i}")
+                if "error" not in res:
+                    frame_results.append(res)
+            
+            if not frame_results:
+                model_query_results[model_name] = {"error": "All TruFor frame queries failed."}
+            else:
+                avg_prob = sum(r["probability"] for r in frame_results) / len(frame_results)
+                # Use the prediction from the average (conservative)
+                avg_pred = 1 if avg_prob >= input_data.threshold else 0
+                model_query_results[model_name] = {
+                    "probability": avg_prob,
+                    "prediction": avg_pred,
+                    "class": "fake" if avg_pred == 1 else "real",
+                    "details": f"Averaged from {len(frame_results)} keyframes."
+                }
+        else:
+            model_query_results[model_name] = query_model_api(
+                model_name, media_type, encoded_media_content, input_data.threshold, req_id
+            )
 
     if not any("error" not in r_data for r_data in model_query_results.values()):
         logger.error(

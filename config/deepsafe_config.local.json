@@ -25,10 +25,12 @@
     },
     "video": {
       "model_endpoints": {
-        "cross_efficient_vit": "http://127.0.0.1:7001/predict"
+        "cross_efficient_vit": "http://127.0.0.1:7001/predict",
+        "trufor": "http://127.0.0.1:5005/predict"
       },
       "health_endpoints": {
-        "cross_efficient_vit": "http://127.0.0.1:7001/health"
+        "cross_efficient_vit": "http://127.0.0.1:7001/health",
+        "trufor": "http://127.0.0.1:5005/health"
       },
       "supported_extensions": [
         "*.mp4",
@@ -50,7 +52,7 @@
     }
   },
   "default_output_dir_base": "./deepsafe_test_results",
-  "default_threshold": 0.45,
+  "default_threshold": 0.25,
   "default_ensemble_method": "average",
   "default_api_timeout_seconds": 1200,
   "default_model_timeout_seconds_video": 1800,
