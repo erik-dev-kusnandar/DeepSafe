@@ -11,27 +11,27 @@ help:
 
 install:
 	@echo "Building Docker images..."
-	docker-compose build
+	docker compose build
 
 start:
 	@echo "Starting DeepSafe..."
-	docker-compose up -d
+	docker compose up -d
 	@echo "DeepSafe is running at http://localhost:8888"
 
 stop:
 	@echo "Stopping DeepSafe..."
-	docker-compose down
+	docker compose down
 
 clean:
 	@echo "Cleaning up..."
-	docker-compose down -v
+	docker compose down -v
 	rm -rf __pycache__
 	rm -rf .pytest_cache
 
 test:
 	@echo "Running system tests..."
 	# Ensure API is running before testing
-	docker-compose up -d api
+	docker compose up -d api
 	docker cp test_system.py deepsafe-api:/app/
 	docker cp test_samples deepsafe-api:/app/
 	docker exec deepsafe-api python test_system.py
