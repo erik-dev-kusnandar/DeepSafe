@@ -20,7 +20,8 @@
         "*.bmp",
         "*.gif",
         "*.tiff",
-        "*.tif"
+        "*.tif",
+        "*.avif"
       ]
     },
     "video": {
