@@ -1,0 +1,20 @@
+{
+    "workbench.colorTheme": "Tokyo Night",
+    "workbench.preferredDarkColorTheme": "Quiet Light",
+    "git.autofetch": true,
+    "files.autoSave": "afterDelay",
+    "security.workspace.trust.untrustedFiles": "open",
+    "antigravity.marketplaceGalleryItemURL": "https://open-vsx.org",
+    "python.languageServer": "Default",
+    "window.confirmBeforeClose": "always",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "remote.autoForwardPortsSource": "hybrid",
+    "makefile.configureOnOpen": true,
+    "python.autoComplete.extraPaths": [
+        "./api"
+    ],
+    "python.analysis.extraPaths": [
+        "./api"
+    ],
+    "python-envs.pythonProjects": []
+}

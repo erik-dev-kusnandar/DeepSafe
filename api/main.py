@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Force reload for port change to 7002
 """
 DeepSafe API Gateway
 ====================
@@ -22,34 +23,66 @@ import base64
 import requests
 import logging
 from typing import Dict, Any, List, Optional, Union, Tuple
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, status
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+# pyrefly: ignore [missing-import]
 from fastapi.responses import JSONResponse
 
 # Updated Pydantic imports for V2
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
+# pyrefly: ignore [missing-import]
 import uvicorn
+# pyrefly: ignore [missing-import]
 from PIL import Image, UnidentifiedImageError
 import io
+# pyrefly: ignore [missing-import]
 import uuid
+# pyrefly: ignore [missing-import]
 import joblib
+# pyrefly: ignore [missing-import]
 import numpy as np
+# pyrefly: ignore [missing-import]
 import pandas as pd
+# pyrefly: ignore [missing-import]
 import json
+<<<<<<< HEAD
 import cv2
 import tempfile
 
+=======
+# pyrefly: ignore [missing-import]
+>>>>>>> 558d80e (refactor: update API and vocoder model configurations, environment settings, and model weights deployment)
 import sys
+# pyrefly: ignore [missing-import]
+import warnings
+
+# Suppress version mismatch warnings from sklearn and xgboost
+warnings.filterwarnings("ignore", category=UserWarning, module="xgboost")
+from sklearn.exceptions import InconsistentVersionWarning
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+# pyrefly: ignore [missing-import]
+from dotenv import load_dotenv
+
+# Load .env from parent directory
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
 
 from rich.console import Console as RichConsole
 from rich.table import Table as RichTable
 from rich.text import Text as RichText
+# pyrefly: ignore [missing-import]
 from passlib.context import CryptContext
 from jose import JWTError, jwt
+# pyrefly: ignore [missing-import]
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+# pyrefly: ignore [missing-import]
 from fastapi import Depends, status
 from datetime import datetime, timedelta
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
 from database import init_db, get_db, SessionLocal, AnalysisHistory
 
 # --- Logging Configuration ---

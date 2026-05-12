@@ -3,9 +3,13 @@ Vocoder Artifacts Audio Deepfake Detection API
 Based on: https://github.com/csun22/Synthetic-Voice-Detection-Vocoder-Artifacts
 """
 
+# pyrefly: ignore [missing-import]
 from flask import Flask, request, jsonify
+# pyrefly: ignore [missing-import]
 import torch
+# pyrefly: ignore [missing-import]
 import numpy as np
+# pyrefly: ignore [missing-import]
 import soundfile as sf
 import io
 import base64
@@ -16,6 +20,7 @@ import sys
 # Add the model directory to path
 sys.path.append("/app/temp_repo")
 
+# pyrefly: ignore [missing-import]
 from model import RawNet
 
 app = Flask(__name__)
@@ -98,6 +103,7 @@ def predict():
 
         # Resample to 16kHz if needed
         if sample_rate != 16000:
+            # pyrefly: ignore [missing-import]
             import librosa
 
             audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=16000)
@@ -113,13 +119,14 @@ def predict():
         else:
             audio = np.pad(audio, (0, target_len - len(audio)), "constant")
 
-        # Convert to tensor
-        audio_tensor = torch.FloatTensor(audio).unsqueeze(0).unsqueeze(0).to(device)
+        # Convert to tensor (expecting shape: [batch, samples])
+        audio_tensor = torch.FloatTensor(audio).unsqueeze(0).to(device)
 
         # Run inference
         with torch.no_grad():
-            output = model(audio_tensor)
-            prob_fake = torch.softmax(output, dim=1)[0, 1].item()
+            output_binary, _ = model(audio_tensor)
+            # Model returns log-softmax, convert to probability
+            prob_fake = torch.exp(output_binary)[0, 1].item()
 
         prediction = 1 if prob_fake >= threshold else 0
         verdict = "fake" if prediction == 1 else "real"
@@ -138,6 +145,8 @@ def predict():
         )
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 

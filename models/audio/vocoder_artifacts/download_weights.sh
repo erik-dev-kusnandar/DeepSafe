@@ -18,11 +18,11 @@ fi
 FILE_ID="15qOi26czvZddIbKP_SOR8SLQFZK8cf8E"
 
 # Download
-gdown --id $FILE_ID -O models/best_model.pth
+gdown $FILE_ID -O models/librifake_pretrained_lambda0.5_epoch_25.pth
 
-if [ -f "models/best_model.pth" ]; then
+if [ -f "models/librifake_pretrained_lambda0.5_epoch_25.pth" ]; then
     echo "✓ Model weights downloaded successfully!"
-    echo "  Location: $(pwd)/models/best_model.pth"
+    echo "  Location: $(pwd)/models/librifake_pretrained_lambda0.5_epoch_25.pth"
 else
     echo "❌ Download failed. Please download manually from:"
     echo "   https://drive.google.com/file/d/15qOi26czvZddIbKP_SOR8SLQFZK8cf8E/view"

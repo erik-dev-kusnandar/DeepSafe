@@ -1,25 +1,25 @@
 services:
-  #   api:
-  #     build: ./api
-  #     container_name: deepsafe-api
-  #     ports:
-  #       - "${PORT:-8001}:8000"
-  #     restart: unless-stopped
-  #     volumes:
-  #       - ./api/meta_model_artifacts:/app/meta_model_artifacts:ro
-  #       - ./config/deepsafe_config.json:/app/config/deepsafe_config.json:ro
-  #     environment:
-  #       - PORT=8000
-  #       - META_MODEL_ARTIFACTS_DIR=/app/meta_model_artifacts
-  #       - DEEPSAFE_CONFIG_FILE_PATH=/app/config/deepsafe_config.json
-  #       # - LOG_LEVEL=debug # Optional: for more verbose API logs
-  #     depends_on:
-  #       - npr_deepfakedetection
-  #       - universalfakedetect
-  #       - video-detect
-  #       - trufor
-  #     networks:
-  #       - deepsafe-network
+  api:
+    build: ./api
+    container_name: deepsafe-api
+    ports:
+      - "${PORT:-8001}:8000"
+    restart: unless-stopped
+    volumes:
+      - ./api/meta_model_artifacts:/app/meta_model_artifacts:ro
+      - ./config/deepsafe_config.json:/app/config/deepsafe_config.json:ro
+    environment:
+      - PORT=8000
+      - META_MODEL_ARTIFACTS_DIR=/app/meta_model_artifacts
+      - DEEPSAFE_CONFIG_FILE_PATH=/app/config/deepsafe_config.json
+      # - LOG_LEVEL=debug # Optional: for more verbose API logs
+    depends_on:
+      - npr_deepfakedetection
+      - universalfakedetect
+      - video-detect
+      - trufor
+    networks:
+      - deepsafe-network
 
   # --- Image Model Services ---
   npr_deepfakedetection:
@@ -35,13 +35,6 @@ services:
       - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
 
   # yermandy_clip_detection:
   #   build: ./models/image/yermandy_clip_detection
@@ -86,13 +79,6 @@ services:
       - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
 
   trufor:
     build: ./models/image/trufor
@@ -104,16 +90,9 @@ services:
       - MODEL_PORT=5005
       - PRELOAD_MODEL=false
       - MODEL_TIMEOUT=600
-      - USE_GPU=${USE_GPU:-false}
+      - USE_GPU=false
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
 
   # spsl_deepfake_detection:
   #   build: ./models/image/spsl_deepfake_detection
@@ -155,13 +134,6 @@ services:
       - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
     # Optional: Add resource limits for CPU/memory if this model is resource-intensive
     # deploy:
     #   resources:
@@ -169,38 +141,27 @@ services:
     #       cpus: '2.0' 
     #       memory: 4G
 
-    # --- Audio Model Services ---
-  vocoder_artifacts:
-    build: ./models/audio/vocoder_artifacts
-    container_name: deepsafe-vocoder-artifacts
+    # --- Placeholder for future audio model service ---
+    # example_audio_model_1:
+    #   build: ./models/audio/example_audio_model_1
+    #   container_name: deepsafe-example-audio-model-1
+    #   ports:
+    #     - "8001:8001"
+    #   restart: unless-stopped
+    #   # ... environment ...
+    #   networks:
+    #     - deepsafe-network
+
+  frontend:
+    build: ./frontend
+    container_name: deepsafe-frontend
     ports:
-      - "${AUDIO_PORT:-7002}:7002"
+      - "8888:80"
     restart: unless-stopped
-    environment:
-      - MODEL_PORT=7002
-      - PRELOAD_MODEL=true
-      - USE_GPU=${USE_GPU:-true}
-    volumes:
-      - ./models/audio/vocoder_artifacts/models:/app/models
+    depends_on:
+      - api
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-    #   frontend:
-    #     build: ./frontend
-    #     container_name: deepsafe-frontend
-    #     ports:
-    #       - "8888:80"
-    #     restart: unless-stopped
-    #     depends_on:
-    #       - api
-    #     networks:
-    #       - deepsafe-network
 
 networks:
   deepsafe-network:

@@ -41,8 +41,12 @@
       ]
     },
     "audio": {
-      "model_endpoints": {},
-      "health_endpoints": {},
+      "model_endpoints": {
+        "vocoder_artifacts": "http://127.0.0.1:7002/predict"
+      },
+      "health_endpoints": {
+        "vocoder_artifacts": "http://127.0.0.1:7002/health"
+      },
       "supported_extensions": [
         "*.mp3",
         "*.wav",
