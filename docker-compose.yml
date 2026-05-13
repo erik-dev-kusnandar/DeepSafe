@@ -1,25 +1,26 @@
 services:
-  #   api:
-  #     build: ./api
-  #     container_name: deepsafe-api
-  #     ports:
-  #       - "${PORT:-8001}:8000"
-  #     restart: unless-stopped
-  #     volumes:
-  #       - ./api/meta_model_artifacts:/app/meta_model_artifacts:ro
-  #       - ./config/deepsafe_config.json:/app/config/deepsafe_config.json:ro
-  #     environment:
-  #       - PORT=8000
-  #       - META_MODEL_ARTIFACTS_DIR=/app/meta_model_artifacts
-  #       - DEEPSAFE_CONFIG_FILE_PATH=/app/config/deepsafe_config.json
-  #       # - LOG_LEVEL=debug # Optional: for more verbose API logs
-  #     depends_on:
-  #       - npr_deepfakedetection
-  #       - universalfakedetect
-  #       - video-detect
-  #       - trufor
-  #     networks:
-  #       - deepsafe-network
+  api:
+    build: ./api
+    container_name: deepsafe-api-dev
+    ports:
+      - "${PORT:-8003}:8000"
+    restart: unless-stopped
+    volumes:
+      - ./api/meta_model_artifacts:/app/meta_model_artifacts:ro
+      - ./config/deepsafe_config.json:/app/config/deepsafe_config.json:ro
+    environment:
+      - PORT=8000
+      - META_MODEL_ARTIFACTS_DIR=/app/meta_model_artifacts
+      - DEEPSAFE_CONFIG_FILE_PATH=/app/config/deepsafe_config.json
+      # - LOG_LEVEL=debug # Optional: for more verbose API logs
+    depends_on:
+      - npr_deepfakedetection
+      - universalfakedetect
+      - video-detect
+      - trufor
+      - vocoder_artifacts
+    networks:
+      - deepsafe-network
 
   # --- Image Model Services ---
   npr_deepfakedetection:
