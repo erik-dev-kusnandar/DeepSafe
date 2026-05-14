@@ -1,0 +1,133 @@
+services:
+  api:
+    build: ./api
+    container_name: deepsafe-api-dev
+    ports:
+      - "${PORT:-8003}:8000"
+    restart: unless-stopped
+    volumes:
+      - ./api/meta_model_artifacts:/app/meta_model_artifacts:ro
+      - ./config/deepsafe_config.json:/app/config/deepsafe_config.json:ro
+    environment:
+      - PORT=8000
+      - META_MODEL_ARTIFACTS_DIR=/app/meta_model_artifacts
+      - DEEPSAFE_CONFIG_FILE_PATH=/app/config/deepsafe_config.json
+      # - LOG_LEVEL=debug # Optional: for more verbose API logs
+    depends_on:
+      - npr_deepfakedetection
+      - universalfakedetect
+      - video-detect
+      - trufor
+      - vocoder_artifacts
+    networks:
+      - deepsafe-network
+
+  # --- Image Model Services ---
+  npr_deepfakedetection:
+    build: ./models/image/npr_deepfakedetection
+    container_name: deepsafe-npr_deepfakedetection
+    ports:
+      - "${NPR_PORT:-5001}:5001"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=5001
+      - PRELOAD_MODEL=false
+      - MODEL_TIMEOUT=${MODEL_TIMEOUT:-600}
+      - USE_GPU=${USE_GPU:-true}
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  universalfakedetect:
+    build: ./models/image/universalfakedetect
+    container_name: deepsafe-universalfakedetect
+    ports:
+      - "${UNIVERSAL_PORT:-5004}:5004"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=5004
+      - PRELOAD_MODEL=false
+      - MODEL_TIMEOUT=${MODEL_TIMEOUT:-600}
+      - USE_GPU=${USE_GPU:-true}
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  trufor:
+    build: ./models/image/trufor
+    container_name: deepsafe-trufor
+    ports:
+      - "5005:5005"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=5005
+      - PRELOAD_MODEL=false
+      - MODEL_TIMEOUT=600
+      - USE_GPU=${USE_GPU:-true}
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  video-detect:
+    build: ./models/video/cross_efficient_vit
+    ports:
+      - "${VIDEO_PORT:-7001}:7001"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7001
+      - PRELOAD_MODEL=false
+      - MODEL_TIMEOUT=900
+      - USE_GPU=${USE_GPU:-true}
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  vocoder_artifacts:
+    build: ./models/audio/vocoder_artifacts
+    container_name: deepsafe-vocoder-artifacts
+    ports:
+      - "${AUDIO_PORT:-7002}:7002"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7002
+      - PRELOAD_MODEL=true
+      - USE_GPU=${USE_GPU:-true}
+    volumes:
+      - ./models/audio/vocoder_artifacts/models:/app/models
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+networks:
+  deepsafe-network:
+    driver: bridge
