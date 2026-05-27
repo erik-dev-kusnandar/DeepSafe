@@ -1,7 +1,7 @@
 services:
   api:
     build: ./api
-    container_name: deepsafe-api-dev
+    container_name: deepsafe-api
     ports:
       - "${PORT:-8003}:8000"
     restart: unless-stopped
@@ -36,13 +36,13 @@ services:
       - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   # yermandy_clip_detection:
   #   build: ./models/image/yermandy_clip_detection
@@ -87,13 +87,13 @@ services:
       - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   trufor:
     build: ./models/image/trufor
@@ -108,13 +108,13 @@ services:
       - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   # spsl_deepfake_detection:
   #   build: ./models/image/spsl_deepfake_detection
@@ -156,13 +156,13 @@ services:
       - USE_GPU=${USE_GPU:-false}
     networks:
       - deepsafe-network
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
     # Optional: Add resource limits for CPU/memory if this model is resource-intensive
     # deploy:
     #   resources:
@@ -185,23 +185,23 @@ services:
       - ./models/audio/vocoder_artifacts/models:/app/models
     networks:
       - deepsafe-network
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [ gpu ]
-    #   frontend:
-    #     build: ./frontend
-    #     container_name: deepsafe-frontend
-    #     ports:
-    #       - "8888:80"
-    #     restart: unless-stopped
-    #     depends_on:
-    #       - api
-    #     networks:
-    #       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+  frontend:
+    build: ./frontend
+    container_name: deepsafe-frontend
+    ports:
+      - "8888:80"
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      - deepsafe-network
 
 networks:
   deepsafe-network:
