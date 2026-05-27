@@ -15,15 +15,15 @@ venv/
 env/
 
 # Model weights (large files)
-# models/audio/vocoder_artifacts/models/*.pth
-# models/audio/vocoder_artifacts/temp_repo/
+models/audio/vocoder_artifacts/models/*.pth
+models/audio/vocoder_artifacts/temp_repo/
 
 # Databases
 *.db
 *.sqlite3
 
 # Artifacts
-# walkthrough.md
-# VERIFICATION.md
-# implementation_plan.md
-# task.md
+walkthrough.md
+VERIFICATION.md
+implementation_plan.md
+task.md
