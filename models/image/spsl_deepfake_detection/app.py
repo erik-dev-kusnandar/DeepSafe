@@ -111,7 +111,7 @@ MODEL_NAME_DISPLAY = "spsl_deepfake_detection"
 SPSL_DETECTOR_KEY_IN_REGISTRY = "spsl"
 
 SPSL_CONFIG_PATH = os.path.join(
-    deepfake_bench_training_path, "config/config/detector/spsl.yaml"
+    deepfake_bench_training_path, "config/detector/spsl.yaml"
 )
 SPSL_WEIGHTS_PATH = os.path.join(
     deepfake_bench_training_path, "weights/spsl_faceforensics++.pth"

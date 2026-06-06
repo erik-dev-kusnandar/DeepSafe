@@ -27,6 +27,10 @@ RUN pip install --no-cache-dir \
     --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Fix executable stack issue with PyTorch's libtorch_cpu.so (common on WSL2/Ubuntu 24.04)
+COPY fix_execstack.py /app/fix_execstack.py
+RUN python3 /app/fix_execstack.py && rm /app/fix_execstack.py
+
 # Clone the DeepfakeBench repository
 RUN git clone https://github.com/SCLBD/DeepfakeBench.git /app/DeepfakeBench
 
@@ -40,7 +44,10 @@ RUN wget -q https://raw.githubusercontent.com/codeniko/shape_predictor_81_face_l
     -O /app/preprocessing/dlib_tools/shape_predictor_81_face_landmarks.dat
 
 # Download Xception backbone weights (ImageNet pretrained) - UCF uses Xception
-RUN wget -q https://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth \
+# Primary: HuggingFace mirror (CADENE server often returns 503)
+RUN wget -q https://huggingface.co/spaces/asdasdasdasd/Face-forgery-detection/resolve/main/xception-b5690688.pth \
+    -O /app/DeepfakeBench/training/pretrained/xception-b5690688.pth || \
+    wget --no-check-certificate -q https://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth \
     -O /app/DeepfakeBench/training/pretrained/xception-b5690688.pth
 
 # Download UCF model weights (trained on FaceForensics++)

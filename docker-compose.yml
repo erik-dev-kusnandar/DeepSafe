@@ -17,8 +17,9 @@ services:
       - npr_deepfakedetection
       - universalfakedetect
       - video-detect
-      - trufor
       - vocoder_artifacts
+      - spsl_deepfake_detection
+      - ucf_deepfake_detection
     networks:
       - deepsafe-network
 
@@ -95,54 +96,58 @@ services:
               count: 1
               capabilities: [ gpu ]
 
-  trufor:
-    build: ./models/image/trufor
-    container_name: deepsafe-trufor
+  # trufor:
+  #   build: ./models/image/trufor
+  #   container_name: deepsafe-trufor
+  #   ports:
+  #     - "5005:5005"
+  #   restart: unless-stopped
+  #   environment:
+  #     - MODEL_PORT=5005
+  #     - PRELOAD_MODEL=false
+  #     - MODEL_TIMEOUT=600
+  #     - USE_GPU=${USE_GPU:-false}
+  #   networks:
+  #     - deepsafe-network
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [ gpu ]
+
+  spsl_deepfake_detection:
+    build: ./models/image/spsl_deepfake_detection
+    container_name: deepsafe-spsl-deepfake-detection
     ports:
-      - "5005:5005"
+      - "5006:5006"
     restart: unless-stopped
+    security_opt:
+      - seccomp=unconfined
     environment:
-      - MODEL_PORT=5005
+      - MODEL_PORT=5006
       - PRELOAD_MODEL=false
       - MODEL_TIMEOUT=600
-      - USE_GPU=${USE_GPU:-false}
+      - USE_GPU=false
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
 
-  # spsl_deepfake_detection:
-  #   build: ./models/image/spsl_deepfake_detection
-  #   container_name: deepsafe-spsl-deepfake-detection
-  #   ports:
-  #     - "5006:5006"
-  #   restart: unless-stopped
-  #   environment:
-  #     - MODEL_PORT=5006
-  #     - PRELOAD_MODEL=false
-  #     - MODEL_TIMEOUT=600
-  #     - USE_GPU=false
-  #   networks:
-  #     - deepsafe-network
-
-  # ucf_deepfake_detection:
-  #   build: ./models/image/ucf_deepfake_detection
-  #   container_name: deepsafe-ucf-deepfake-detection
-  #   ports:
-  #     - "5007:5007"
-  #   restart: unless-stopped
-  #   environment:
-  #     - MODEL_PORT=5007
-  #     - PRELOAD_MODEL=false
-  #     - MODEL_TIMEOUT=600
-  #     - USE_GPU=false
-  #   networks:
-  #     - deepsafe-network
+  ucf_deepfake_detection:
+    build: ./models/image/ucf_deepfake_detection
+    container_name: deepsafe-ucf-deepfake-detection
+    ports:
+      - "5007:5007"
+    restart: unless-stopped
+    security_opt:
+      - seccomp=unconfined
+    environment:
+      - MODEL_PORT=5007
+      - PRELOAD_MODEL=false
+      - MODEL_TIMEOUT=600
+      - USE_GPU=false
+    networks:
+      - deepsafe-network
 
   video-detect:
     build: ./models/video/cross_efficient_vit

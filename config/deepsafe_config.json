@@ -5,12 +5,14 @@
       "model_endpoints": {
         "npr_deepfakedetection": "http://npr_deepfakedetection:5001/predict",
         "universalfakedetect": "http://universalfakedetect:5004/predict",
-        "trufor": "http://trufor:5005/predict"
+        "spsl_deepfake_detection": "http://spsl_deepfake_detection:5006/predict",
+        "ucf_deepfake_detection": "http://ucf_deepfake_detection:5007/predict"
       },
       "health_endpoints": {
         "npr_deepfakedetection": "http://npr_deepfakedetection:5001/health",
         "universalfakedetect": "http://universalfakedetect:5004/health",
-        "trufor": "http://trufor:5005/health"
+        "spsl_deepfake_detection": "http://spsl_deepfake_detection:5006/health",
+        "ucf_deepfake_detection": "http://ucf_deepfake_detection:5007/health"
       },
       "supported_extensions": [
         "*.jpg",
@@ -26,12 +28,10 @@
     },
     "video": {
       "model_endpoints": {
-        "cross_efficient_vit": "http://video-detect:7001/predict",
-        "trufor": "http://trufor:5005/predict"
+        "cross_efficient_vit": "http://video-detect:7001/predict"
       },
       "health_endpoints": {
-        "cross_efficient_vit": "http://video-detect:7001/health",
-        "trufor": "http://trufor:5005/health"
+        "cross_efficient_vit": "http://video-detect:7001/health"
       },
       "supported_extensions": [
         "*.mp4",
@@ -57,7 +57,7 @@
     }
   },
   "default_output_dir_base": "./deepsafe_test_results",
-  "default_threshold": 0.25,
+  "default_threshold": 0.6,
   "default_ensemble_method": "average",
   "default_api_timeout_seconds": 1200,
   "default_model_timeout_seconds_video": 1800,

@@ -103,7 +103,7 @@ MODEL_NAME_DISPLAY = "ucf_deepfake_detection"
 UCF_DETECTOR_KEY_IN_REGISTRY = "ucf"
 
 UCF_CONFIG_PATH = os.path.join(
-    deepfake_bench_training_path, "config/config/detector/ucf.yaml"
+    deepfake_bench_training_path, "config/detector/ucf.yaml"
 )
 UCF_WEIGHTS_PATH = os.path.join(
     deepfake_bench_training_path, "weights/ucf_faceforensics++.pth"
