@@ -1,137 +1,184 @@
-# 🐶 DeepSafe: Enterprise-Grade Deepfake Detection Platform
+# DeepSafe: Enterprise-Grade Deepfake Detection Platform
 
-<div align="center">
+Modular, containerized ensemble platform for deepfake detection in images, video, and audio.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI Status](https://github.com/siddharthksah/DeepSafe/actions/workflows/ci.yml/badge.svg)](https://github.com/siddharthksah/DeepSafe/actions)
-[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
+## Architecture
 
-</div>
-
----
-
-**DeepSafe** is a modular, high-performance, and containerized platform designed for the robust detection of deepfakes in digital media. By aggregating state-of-the-art detection models into a unified ensemble, DeepSafe provides enterprise-grade accuracy and reliability.
-
-## 🚀 Why DeepSafe?
-
-### Platform Agnostic & Dependency Isolated
-DeepSafe adopts a **microservices architecture** where each detection model runs in its own isolated Docker container. This design choice is deliberate and critical:
--   **No Dependency Hell**: Each model can have its own specific version of PyTorch, CUDA, or other libraries without conflicting with others.
--   **Platform Independent**: Whether you are on Linux, macOS, or Windows, if you have Docker, DeepSafe works.
--   **Scalable**: Scale individual models based on load.
-
-### Key Features
--   **Enterprise-Grade Authentication**: Secure Login and Registration system to protect access.
--   **Multi-Modal Detection**: Analyzes both **Images** and **Videos** for manipulation.
--   **Ensemble Intelligence**: Combines multiple state-of-the-art models (NPR, UniversalFakeDetect, CrossEfficientViT) for superior accuracy.
--   **Meta-Learning Engine**: Dynamically stacks model outputs using advanced meta-learners to reduce false positives.
--   **Premium UI/UX**: A modern, dark-themed React dashboard with interactive charts and real-time feedback.
--   **Dockerized Architecture**: Fully containerized services for easy deployment and isolation.
--   **RESTful API**: Robust FastAPI backend with health checks, batch processing, and detailed logging.
-
-## 📸 UI Preview
-
-<div align="center">
-  <img src="docs/images/login.png" alt="Login Page" width="45%">
-  <img src="docs/images/dashboard_1.png" alt="Dashboard Overview" width="45%">
-  <img src="docs/images/dashboard_2.png" alt="Dashboard Analysis" width="45%">
-  <img src="docs/images/dashboard_3.png" alt="Dashboard Results" width="45%">
-</div>
-
-## 🏗️ Architecture
-
-DeepSafe orchestrates a fleet of specialized detectors via a central API gateway:
-
-```mermaid
-graph TD
-    Client[Web Client / User] --> Nginx[Nginx / Frontend]
-    Nginx --> API[DeepSafe API FastAPI]
-    API --> Meta[Meta-Learner Ensemble]
-    
-    subgraph "Image Detectors"
-        Meta --> NPR[NPR Deepfake]
-        Meta --> UFD[Universal Fake Detect]
-    end
-    
-    subgraph "Video Detectors"
-        Meta --> CEV[Cross Efficient ViT]
-    end
+```
+                         ┌─────────────────────┐
+                         │   DeepSafe API       │
+                         │   (port 8003)        │
+                         └──────┬──────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                      │
+    ┌─────┴──────┐      ┌──────┴──────┐       ┌──────┴──────┐
+    │   Image     │      │    Video    │       │    Audio    │
+    │  Models     │      │   Models    │       │   Models    │
+    └──┬──┬──┬──┬─┘      └──────┬──────┘       └──────┬──────┘
+       │  │  │  │               │                      │
+       │  │  │  │     cross_efficient_vit     vocoder_artifacts
+       │  │  │  │           (7001)                 (7002)
+       │  │  │  │
+  npr  │  │  │  │
+ (5001)│  │  │  │
+       │  │  │  │
+  yermandy_clip  universalfakedetect
+  (5002)         (5004)
+       │
+  wavelet_clip   spsl    ucf
+  (5003)         (5006)  (5007)
 ```
 
-## 🛠️ Quick Start
+## Models
 
-### Prerequisites
--   **Docker** & **Docker Compose**
--   **Git**
+| Model | Type | Port | Preload | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **NPR Deepfake** | Image | 5001 | ❌ | Neural Pattern Recognition |
+| **Yermandy CLIP** | Image | 5002 | ✅ | CLIP-based detection |
+| **Wavelet CLIP** | Image | 5003 | ✅ | Wavelet + CLIP hybrid |
+| **Universal Fake Detect** | Image | 5004 | ❌ | Generalizable detection |
+| **SPSL** | Image | 5006 | ❌ | Self-supervised learning |
+| **UCF** | Image | 5007 | ❌ | Unconvolutional features |
+| **Cross Efficient ViT** | Video | 7001 | ❌ | Video Vision Transformer |
+| **Vocoder Artifacts** | Audio | 7002 | ✅ | Audio artifact detection |
 
-### Installation
+## Prerequisites
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/siddharthksah/DeepSafe.git
-    cd DeepSafe
-    ```
+- Docker & Docker Compose with Compose V2
+- NVIDIA Docker runtime (for GPU support)
+- Git LFS (optional, for model weight files)
 
-2.  **Launch the Platform**:
-    ```bash
-    make start
-    ```
-    *This will build all containers and start the services. Initial build may take a few minutes.*
+## Model Weights
 
-3.  **Access the Dashboard**:
-    Open `http://localhost:8888` in your browser.
+Some models require weight files that are **not tracked in git** (see `.gitignore`):
 
-4.  **API Documentation**:
-    Visit `http://localhost:8000/docs` for the interactive Swagger UI.
+```
+models/image/yermandy_clip_detection/model_code/weights/model.ckpt
+models/image/wavelet_clip_detection/model_code/weights/clip_wavelet_best.pth
+models/audio/vocoder_artifacts/models/librifake_pretrained_lambda0.5_epoch_25.pth
+```
 
-## 📦 Available Models
+Transfer these separately (rsync/scp/USB) to the server before building.
 
-| Model | Type | Status | Description |
-| :--- | :--- | :--- | :--- |
-| **NPR Deepfake** | Image | ✅ Active | Neural Pattern Recognition for subtle artifact detection. |
-| **Universal Fake Detect** | Image | ✅ Active | Generalizable detection for unseen deepfake types. |
-| **Cross Efficient ViT** | Video | ✅ Active | High-efficiency video analysis using Vision Transformers. |
-| **FakeSTormer** | Video | ✅ Active | Vulnerability-Aware Spatio-Temporal Learning for Generalizable Deepfake Video Detection. |
-
-## 🧪 Testing & Verification
-
-DeepSafe includes a comprehensive test suite to ensure system integrity.
+## Quick Start
 
 ```bash
-# Run health checks and basic functionality tests
-make test
+# 1. Clone
+git clone <your-repo-url>
+cd DeepSafe
+
+# 2. (Optional) GPU mode — enabled by default
+export USE_GPU=true
+
+# 3. Build and start all services
+docker compose build
+docker compose up -d
+
+# 4. Check all services are healthy
+curl http://localhost:8003/health
 ```
 
-## 🤝 Contributing
+### GPU / CPU Mode
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+```bash
+# GPU (default) — requires nvidia-container-toolkit
+docker compose up -d
 
-## 📄 License
+# CPU only
+USE_GPU=false docker compose up -d
+```
 
-Distributed under the MIT License. See `LICENSE` for more information.
+### Port Configuration
 
-## 📖 Citing DeepSafe
+Override ports via environment variables:
 
-If you find DeepSafe useful in your research or work, please consider citing it:
+```bash
+NPR_PORT=5001 YERMANDY_PORT=5002 WAVELET_PORT=5003 \
+UNIVERSAL_PORT=5004 SPSL_PORT=5006 UCF_PORT=5007 \
+VIDEO_PORT=7001 AUDIO_PORT=7002 \
+docker compose up -d
+```
 
-```bibtex
-@misc{deepsafe,
-  author = {Siddharth Kumar},
-  title = {DeepSafe: Enterprise-Grade Deepfake Detection Platform},
-  year = {2025},
-  publisher = {GitHub},
-  url = {https://github.com/siddharthksah/DeepSafe}
+## Configuration
+
+Edit `config/deepsafe_config.json` to register/unregister model endpoints and adjust ensemble settings:
+
+```json
+{
+  "default_threshold": 0.6,
+  "default_ensemble_method": "average",
+  "default_api_timeout_seconds": 1200
 }
 ```
 
-## 🏆 Credits
+### Ensemble Methods
 
-DeepSafe integrates and builds upon the following excellent open-source research:
+- `average` — mean of all model probabilities (recommended)
+- `voting` — majority vote
+- `stacking` — meta-learner (requires pre-trained artifacts)
 
--   **NPR Deepfake**: [GitHub](https://github.com/chuangchuangtan/NPR-Deepfake)
--   **Universal Fake Detect**: [GitHub](https://github.com/ojha11/UniversalFakeDetect)
--   **Cross Efficient ViT**: [GitHub](https://github.com/nicolia/CrossEfficientViT)
--   **FakeSTormer**: [GitHub](https://github.com/10Ring/FakeSTormer)
+## API
 
-We thank the original authors for their contributions to the community.
+### Predict
+
+```bash
+# Base64-encoded image
+curl -X POST http://localhost:8003/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "media_type": "image",
+    "image_data": "<base64>",
+    "threshold": 0.6,
+    "ensemble_method": "average"
+  }'
+```
+
+### Health
+
+```bash
+curl http://localhost:8003/health
+```
+
+## Integration with XPose
+
+DeepSafe runs alongside the XPose backend. In `xpose-backend/.env`:
+
+```
+DEEPSAFE_BASE_URL=http://host.docker.internal:8003
+```
+
+The XPose worker sends media files to DeepSafe's `/predict` endpoint and aggregates per-model results.
+
+## Preloading
+
+Models with `PRELOAD_MODEL=true` load their weights at container startup (~5 min on CPU). This avoids cold-start latency on first request but increases startup time.
+
+Models with `PRELOAD_MODEL=false` load weights on first request (faster startup, slower first inference).
+
+## Development
+
+```bash
+# Rebuild a single model
+docker compose build wavelet_clip_detection
+
+# Restart without rebuilding
+docker compose up -d wavelet_clip_detection
+
+# View logs
+docker compose logs -f api
+docker compose logs -f wavelet_clip_detection
+
+# Stop all
+docker compose down
+```
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+| :--- | :--- | :--- |
+| Model returns HTTP 500 | Missing dependency | Check container logs |
+| `libtorch_cpu.so` execstack error | Kernel security policy | Fixed in wavelet Dockerfile via ELF patching |
+| `pkg_resources` not found | setuptools too new | Pinned to `setuptools<72` |
+| CLIP download hangs at runtime | HuggingFace blocked | Pre-downloaded at build time |
+| Container exits immediately | OOM or GPU error | Set `USE_GPU=false` or increase memory |
