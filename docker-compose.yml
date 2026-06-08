@@ -15,6 +15,8 @@ services:
       # - LOG_LEVEL=debug # Optional: for more verbose API logs
     depends_on:
       - npr_deepfakedetection
+      - yermandy_clip_detection
+      - wavelet_clip_detection
       - universalfakedetect
       - video-detect
       - vocoder_artifacts
@@ -34,7 +36,7 @@ services:
       - MODEL_PORT=5001
       - PRELOAD_MODEL=false
       - MODEL_TIMEOUT=${MODEL_TIMEOUT:-600}
-      - USE_GPU=${USE_GPU:-false}
+      - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
     deploy:
@@ -45,47 +47,40 @@ services:
               count: 1
               capabilities: [ gpu ]
 
-  # yermandy_clip_detection:
-  #   build: ./models/image/yermandy_clip_detection
-  #   container_name: deepsafe-yermandy-clip-detection
-  #   ports:
-  #     - "5002:5002"
-  #   restart: unless-stopped
-  #   environment:
-  #     - MODEL_PORT=5002
-  #     - MODEL_PATH=model_code/weights/model.ckpt
-  #     - PRELOAD_MODEL=false
-  #     - MODEL_TIMEOUT=600
-  #     - USE_GPU=false
-  #   networks:
-  #     - deepsafe-network
-
-  # wavelet_clip_detection:
-  #   build: ./models/image/wavelet_clip_detection
-  #   container_name: deepsafe-wavelet-clip-detection
-  #   ports:
-  #     - "5003:5003"
-  #   restart: unless-stopped
-  #   environment:
-  #     - MODEL_PORT=5003
-  #     - MODEL_PATH=model_code/weights/clip_wavelet_best.pth
-  #     - PRELOAD_MODEL=false
-  #     - MODEL_TIMEOUT=600
-  #     - USE_GPU=false
-  #   networks:
-  #     - deepsafe-network
-
-  universalfakedetect:
-    build: ./models/image/universalfakedetect
-    container_name: deepsafe-universalfakedetect
+  yermandy_clip_detection:
+    build: ./models/image/yermandy_clip_detection
+    container_name: deepsafe-yermandy-clip-detection
     ports:
-      - "${UNIVERSAL_PORT:-5004}:5004"
+      - "${YERMANDY_PORT:-5002}:5002"
     restart: unless-stopped
     environment:
-      - MODEL_PORT=5004
-      - PRELOAD_MODEL=false
-      - MODEL_TIMEOUT=${MODEL_TIMEOUT:-600}
-      - USE_GPU=${USE_GPU:-false}
+      - MODEL_PORT=5002
+      - MODEL_PATH=model_code/weights/model.ckpt
+      - PRELOAD_MODEL=true
+      - MODEL_TIMEOUT=600
+      - USE_GPU=${USE_GPU:-true}
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  wavelet_clip_detection:
+    build: ./models/image/wavelet_clip_detection
+    container_name: deepsafe-wavelet-clip-detection
+    ports:
+      - "${WAVELET_PORT:-5003}:5003"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=5003
+      - MODEL_PATH=model_code/weights/clip_wavelet_best.pth
+      - PRELOAD_MODEL=true
+      - MODEL_TIMEOUT=600
+      - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
     deploy:
@@ -117,11 +112,32 @@ services:
   #             count: 1
   #             capabilities: [ gpu ]
 
+  universalfakedetect:
+    build: ./models/image/universalfakedetect
+    container_name: deepsafe-universalfakedetect
+    ports:
+      - "${UNIVERSAL_PORT:-5004}:5004"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=5004
+      - PRELOAD_MODEL=false
+      - MODEL_TIMEOUT=${MODEL_TIMEOUT:-600}
+      - USE_GPU=${USE_GPU:-true}
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
   spsl_deepfake_detection:
     build: ./models/image/spsl_deepfake_detection
     container_name: deepsafe-spsl-deepfake-detection
     ports:
-      - "5006:5006"
+      - "${SPSL_PORT:-5006}:5006"
     restart: unless-stopped
     security_opt:
       - seccomp=unconfined
@@ -129,15 +145,22 @@ services:
       - MODEL_PORT=5006
       - PRELOAD_MODEL=false
       - MODEL_TIMEOUT=600
-      - USE_GPU=false
+      - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   ucf_deepfake_detection:
     build: ./models/image/ucf_deepfake_detection
     container_name: deepsafe-ucf-deepfake-detection
     ports:
-      - "5007:5007"
+      - "${UCF_PORT:-5007}:5007"
     restart: unless-stopped
     security_opt:
       - seccomp=unconfined
@@ -145,9 +168,16 @@ services:
       - MODEL_PORT=5007
       - PRELOAD_MODEL=false
       - MODEL_TIMEOUT=600
-      - USE_GPU=false
+      - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   video-detect:
     build: ./models/video/cross_efficient_vit
@@ -158,7 +188,7 @@ services:
       - MODEL_PORT=7001
       - PRELOAD_MODEL=false
       - MODEL_TIMEOUT=900
-      - USE_GPU=${USE_GPU:-false}
+      - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
     deploy:

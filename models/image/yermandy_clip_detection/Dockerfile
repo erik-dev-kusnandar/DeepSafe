@@ -3,7 +3,7 @@ FROM python:3.10-slim
 
 RUN pip install --no-cache-dir \
     torch==2.6.0 torchvision==0.21.0 \
-    -f https://download.pytorch.org/whl/cpu/torch_stable.html
+    --extra-index-url https://download.pytorch.org/whl/cpu
 
 WORKDIR /app
 
@@ -23,9 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # We'll name the cloned directory "model_code" to avoid conflicts
 RUN git clone https://github.com/yermandy/deepfake-detection.git model_code
 
-# Download model weights
-RUN mkdir -p model_code/weights && \
-    wget https://huggingface.co/yermandy/deepfake-detection/resolve/main/model.ckpt -O model_code/weights/model.ckpt
+# Download model weights (from local)
+COPY model_code/weights/model.ckpt model_code/weights/model.ckpt
 
 # Set Hugging Face home to cache pre-trained models inside the container
 ENV HF_HOME=/app/huggingface_cache
@@ -33,13 +32,8 @@ ENV TRANSFORMERS_CACHE=/app/huggingface_cache
 ENV HF_HUB_CACHE=/app/huggingface_cache
 RUN mkdir -p $HF_HOME
 
-# Pre-download Hugging Face CLIPProcessor models to be self-sustaining
-# This ensures these are part of the Docker image layer
-RUN python -c "from transformers import CLIPProcessor; \
-    CLIPProcessor.from_pretrained('openai/clip-vit-base-patch16'); \
-    CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32'); \
-    CLIPProcessor.from_pretrained('openai/clip-vit-large-patch14'); \
-    CLIPProcessor.from_pretrained('openai/clip-vit-large-patch14-336')"
+# Pre-download Hugging Face CLIP models to be self-sustaining
+RUN python -c "from transformers import CLIPProcessor, CLIPModel; CLIPProcessor.from_pretrained('openai/clip-vit-base-patch16'); CLIPModel.from_pretrained('openai/clip-vit-large-patch14'); CLIPProcessor.from_pretrained('openai/clip-vit-large-patch14')"
 
 # Copy the application file
 COPY app.py .
@@ -48,7 +42,7 @@ COPY app.py .
 # MODEL_PORT will be set by docker-compose, defaulting here for clarity
 ENV MODEL_PORT=5002
 ENV MODEL_PATH=model_code/weights/model.ckpt
-ENV PRELOAD_MODEL="false"
+ENV PRELOAD_MODEL="true"
 # MODEL_TIMEOUT: Seconds to keep model loaded if not preloaded
 ENV MODEL_TIMEOUT="600"
 
