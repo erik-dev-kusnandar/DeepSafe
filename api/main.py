@@ -1083,10 +1083,10 @@ async def predict_media_endpoint_api(request: Request, input_data: PredictInput)
             }
             continue
 
-        # Face-Aware Model Filtering
-        if media_type == "video" and not video_face_found and model_name == "cross_efficient_vit":
-            logger.info(f"Request {req_id}: Skipping '{model_name}' because NO face was detected.")
-            continue
+        # Face-Aware Model Filtering (disabled — run cross_efficient_vit on any video)
+        # if media_type == "video" and not video_face_found and model_name == "cross_efficient_vit":
+        #     logger.info(f"Request {req_id}: Skipping '{model_name}' because NO face was detected.")
+        #     continue
 
         if model_name == "trufor" and media_type == "video":
             # Specialized handler for TruFor on Video (Frame Sampling)
