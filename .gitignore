@@ -14,10 +14,7 @@ venv/
 .venv/
 env/
 
-# Model weights (large files)
-*.pth
-*.ckpt
-*.pt
+# Model weights (tracked via Git LFS)
 models/audio/vocoder_artifacts/temp_repo/
 
 # Databases
