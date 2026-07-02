@@ -1351,7 +1351,7 @@ def main_cli():
         "--method",
         type=str,
         dest="ensemble_method",
-        choices=["voting", "average", "stacking"],
+        choices=["voting", "average", "stacking", "max_risk"],
         help="Ensemble method for Main API call.",
     )
     test_p.add_argument(
@@ -1382,7 +1382,7 @@ def main_cli():
         "--method",
         dest="local_ensemble_method",
         type=str,
-        choices=["voting", "average"],
+        choices=["voting", "average", "max_risk"],
         help="Local ensemble method.",
     )
     batch_p.add_argument(
@@ -1411,7 +1411,7 @@ def main_cli():
         "--method",
         dest="local_ensemble_method",
         type=str,
-        choices=["voting", "average"],
+        choices=["voting", "average", "max_risk"],
         help="Local ensemble method.",
     )
 

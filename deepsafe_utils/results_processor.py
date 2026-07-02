@@ -93,6 +93,15 @@ class ResultsProcessor:
                 verdict = "fake" if ensemble_prob_fake >= threshold else "real"
             else:
                 ensemble_prob_fake = 0.5
+        elif method == "max_risk":
+            probabilities = [
+                r["probability"] for r in valid_outputs
+            ]
+            if probabilities:
+                ensemble_prob_fake = max(probabilities)
+                verdict = "fake" if ensemble_prob_fake >= threshold else "real"
+            else:
+                ensemble_prob_fake = 0.5
         else:
             console.print(
                 f"[yellow]Unsupported local ensemble method '{method}'. Defaulting to undetermined for this item.[/yellow]"

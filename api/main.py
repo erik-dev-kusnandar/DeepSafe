@@ -475,7 +475,7 @@ class PredictInput(BaseModel):
             if ALL_MODEL_CONFIGS
             else "stacking"
         ),
-        pattern="^(voting|average|stacking)$",
+        pattern="^(voting|average|stacking|max_risk)$",
     )
 
     @model_validator(mode="after")
@@ -828,6 +828,16 @@ def calculate_ensemble_verdict_api(
         ]
         if probabilities:
             ensemble_prob_fake_score = float(sum(probabilities) / len(probabilities))
+        else:
+            ensemble_prob_fake_score = 0.5
+    elif actual_method_used == "max_risk":
+        probabilities = [
+            r_data["probability"]
+            for r_data in valid_results.values()
+            if r_data.get("probability") is not None
+        ]
+        if probabilities:
+            ensemble_prob_fake_score = float(max(probabilities))
         else:
             ensemble_prob_fake_score = 0.5
 
