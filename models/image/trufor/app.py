@@ -64,22 +64,19 @@ MODEL_WEIGHTS_PATH = "/app/weights/trufor.pth.tar"
 
 # Determine device based on environment variable, ensuring CPU
 USE_GPU_ENV = os.environ.get("USE_GPU", "false").lower() == "true"
-DEVICE = torch.device("cpu")  # Hardcode to CPU as per user requirement
-
 USE_GPU = (
-    os.environ.get("USE_GPU", "false").lower() == "true" and torch.cuda.is_available()
+    os.environ.get("USE_GPU", "true").lower() == "true" and torch.cuda.is_available()
 )
 
-if USE_GPU_ENV and torch.cuda.is_available():
-    logger.warning(
-        "TruFor Service: USE_GPU=true and CUDA is available, but service is configured for CPU ONLY. Using CPU."
-    )
-elif USE_GPU_ENV and not torch.cuda.is_available():
-    logger.info(
-        "TruFor Service: USE_GPU=true but CUDA not available. Using CPU as intended."
-    )
+if USE_GPU:
+    DEVICE = torch.device("cuda")
+    logger.info(f"TruFor Service: Using GPU (CUDA).")
+elif torch.cuda.is_available():
+    DEVICE = torch.device("cpu")
+    logger.info("TruFor Service: USE_GPU=false, using CPU.")
 else:
-    logger.info("TruFor Service: Using CPU as USE_GPU=false or not set.")
+    DEVICE = torch.device("cpu")
+    logger.info("TruFor Service: CUDA not available, using CPU.")
 
 
 PRELOAD_MODEL = os.environ.get("PRELOAD_MODEL", "false").lower() == "true"
