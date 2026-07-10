@@ -98,13 +98,6 @@ services:
       - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
 
   vocoder_artifacts:
     build: ./models/audio/vocoder_artifacts

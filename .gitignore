@@ -26,3 +26,6 @@ walkthrough.md
 VERIFICATION.md
 implementation_plan.md
 task.md
+models/audio/vocoder_artifacts/models/librifake_pretrained_lambda0.5_epoch_25.pth
+models/image/wavelet_clip_detection/model_code/weights/clip_wavelet_best.pth
+models/image/yermandy_clip_detection/model_code/weights/model.ckpt

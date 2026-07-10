@@ -192,19 +192,6 @@ services:
       - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-    # Optional: Add resource limits for CPU/memory if this model is resource-intensive
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '2.0' 
-    #       memory: 4G
 
     # --- Audio Model Services ---
   vocoder_artifacts:
