@@ -88,6 +88,7 @@ def predict():
     Expects JSON: {"audio_data": "base64_encoded_wav_file", "threshold": 0.5}
     """
     try:
+        global model, device
         data = request.json
         audio_b64 = data.get("audio_data")
         threshold = data.get("threshold", 0.5)
