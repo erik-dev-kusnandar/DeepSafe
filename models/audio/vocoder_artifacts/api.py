@@ -35,6 +35,9 @@ def load_model():
     global model, device
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device.type == "cuda":
+        print("CUDA is available. Disabling cuDNN to prevent CUDNN_STATUS_INTERNAL_ERROR.")
+        torch.backends.cudnn.enabled = False
 
     # Initialize model architecture
     model = RawNet(
@@ -123,10 +126,22 @@ def predict():
         audio_tensor = torch.FloatTensor(audio).unsqueeze(0).to(device)
 
         # Run inference
-        with torch.no_grad():
-            output_binary, _ = model(audio_tensor)
-            # Model returns log-softmax, convert to probability
-            prob_fake = torch.exp(output_binary)[0, 1].item()
+        try:
+            with torch.no_grad():
+                output_binary, _ = model(audio_tensor)
+                # Model returns log-softmax, convert to probability
+                prob_fake = torch.exp(output_binary)[0, 1].item()
+        except Exception as e:
+            if ("cuda" in str(e).lower() or "cudnn" in str(e).lower()) and device.type == "cuda":
+                print(f"⚠ CUDA/cuDNN error: {e}. Falling back to CPU for execution.")
+                device = torch.device("cpu")
+                model.to(device)
+                audio_tensor = audio_tensor.to(device)
+                with torch.no_grad():
+                    output_binary, _ = model(audio_tensor)
+                    prob_fake = torch.exp(output_binary)[0, 1].item()
+            else:
+                raise e
 
         prediction = 1 if prob_fake >= threshold else 0
         verdict = "fake" if prediction == 1 else "real"
