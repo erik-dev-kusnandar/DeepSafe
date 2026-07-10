@@ -221,13 +221,6 @@ services:
       - ./models/audio/vocoder_artifacts/models:/app/models
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
   frontend:
     build: ./frontend
     container_name: deepsafe-frontend
