@@ -20,6 +20,10 @@ services:
       - universalfakedetect
       - video-detect
       - vocoder_artifacts
+      - aasist
+      - rawnet2
+      - rawgat_st
+      - wavlm
       - spsl_deepfake_detection
       - ucf_deepfake_detection
     networks:
@@ -81,6 +85,8 @@ services:
       - PRELOAD_MODEL=true
       - MODEL_TIMEOUT=600
       - USE_GPU=${USE_GPU:-true}
+    volumes:
+      - ./models/image/wavelet_clip_detection/model_code/weights:/app/model_code/weights
     networks:
       - deepsafe-network
     deploy:
@@ -91,7 +97,6 @@ services:
               count: 1
               capabilities: [ gpu ]
 
-  # trufor (disabled: CPU-only, 77s per prediction — weights download also failing)
   # trufor:
   #   build: ./models/image/trufor
   #   container_name: deepsafe-trufor
@@ -102,7 +107,7 @@ services:
   #     - MODEL_PORT=5005
   #     - PRELOAD_MODEL=false
   #     - MODEL_TIMEOUT=600
-  #     - USE_GPU=${USE_GPU:-true}
+  #     - USE_GPU=${USE_GPU:-false}
   #   networks:
   #     - deepsafe-network
   #   deploy:
@@ -192,6 +197,19 @@ services:
       - USE_GPU=${USE_GPU:-true}
     networks:
       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    # Optional: Add resource limits for CPU/memory if this model is resource-intensive
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0' 
+    #       memory: 4G
 
     # --- Audio Model Services ---
   vocoder_artifacts:
@@ -208,6 +226,103 @@ services:
       - ./models/audio/vocoder_artifacts/models:/app/models
     networks:
       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  aasist:
+    build: ./models/audio/aasist
+    container_name: deepsafe-aasist
+    ports:
+      - "${AASIST_PORT:-7003}:7003"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7003
+      - PRELOAD_MODEL=true
+      - USE_GPU=${USE_GPU:-true}
+    volumes:
+      - ./models/audio/aasist/models:/app/models
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  rawnet2:
+    build: ./models/audio/rawnet2
+    container_name: deepsafe-rawnet2
+    ports:
+      - "${RAWNET2_PORT:-7004}:7004"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7004
+      - PRELOAD_MODEL=true
+      - USE_GPU=${USE_GPU:-true}
+    volumes:
+      - ./models/audio/rawnet2/models:/app/models
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  rawgat_st:
+    build: ./models/audio/rawgat_st
+    container_name: deepsafe-rawgat-st
+    ports:
+      - "${RAWGAT_ST_PORT:-7005}:7005"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7005
+      - PRELOAD_MODEL=true
+      - USE_GPU=${USE_GPU:-true}
+    volumes:
+      - ./models/audio/rawgat_st/models:/app/models
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  wavlm:
+    build: ./models/audio/wavlm
+    container_name: deepsafe-wavlm
+    ports:
+      - "${WAVLM_PORT:-7006}:7006"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7006
+      - PRELOAD_MODEL=true
+      - USE_GPU=${USE_GPU:-true}
+      - TRANSFORMERS_CACHE=/app/models
+    volumes:
+      - ./models/audio/wavlm/models:/app/models
+    networks:
+      - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
   frontend:
     build: ./frontend
     container_name: deepsafe-frontend

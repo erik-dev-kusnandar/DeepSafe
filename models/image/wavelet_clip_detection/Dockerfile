@@ -62,9 +62,6 @@ RUN git clone https://github.com/lalithbharadwajbaru/Wavelet-CLIP.git model_code
 # Create directory for model weights
 RUN mkdir -p model_code/weights
 
-# Copy model weights from local
-COPY model_code/weights/clip_wavelet_best.pth model_code/weights/clip_wavelet_best.pth
-
 # Create __init__.py files to make directories proper Python packages
 RUN touch model_code/__init__.py && \
     touch model_code/training/__init__.py && \

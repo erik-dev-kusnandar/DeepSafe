@@ -14,8 +14,9 @@ venv/
 .venv/
 env/
 
-# Model weights (tracked via Git LFS)
+# Model weights (downloaded via download_weights.sh or Git LFS)
 models/audio/vocoder_artifacts/temp_repo/
+models/audio/wavlm/models/
 
 # Databases
 *.db

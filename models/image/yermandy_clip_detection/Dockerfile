@@ -23,8 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # We'll name the cloned directory "model_code" to avoid conflicts
 RUN git clone https://github.com/yermandy/deepfake-detection.git model_code
 
-# Download model weights (from local)
-COPY model_code/weights/model.ckpt model_code/weights/model.ckpt
+# Download model weights from HuggingFace
+RUN mkdir -p model_code/weights && \
+    python -c "from huggingface_hub import hf_hub_download; hf_hub_download('yermandy/deepfake-detection', 'model.ckpt', local_dir='model_code/weights')"
 
 # Set Hugging Face home to cache pre-trained models inside the container
 ENV HF_HOME=/app/huggingface_cache

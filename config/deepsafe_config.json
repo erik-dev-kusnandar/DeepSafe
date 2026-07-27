@@ -46,10 +46,18 @@
     },
     "audio": {
       "model_endpoints": {
-        "vocoder_artifacts": "http://vocoder_artifacts:7002/predict"
+        "vocoder_artifacts": "http://vocoder_artifacts:7002/predict",
+        "aasist": "http://aasist:7003/predict",
+        "rawnet2": "http://rawnet2:7004/predict",
+        "rawgat_st": "http://rawgat_st:7005/predict",
+        "wavlm": "http://wavlm:7006/predict"
       },
       "health_endpoints": {
-        "vocoder_artifacts": "http://vocoder_artifacts:7002/health"
+        "vocoder_artifacts": "http://vocoder_artifacts:7002/health",
+        "aasist": "http://aasist:7003/health",
+        "rawnet2": "http://rawnet2:7004/health",
+        "rawgat_st": "http://rawgat_st:7005/health",
+        "wavlm": "http://wavlm:7006/health"
       },
       "supported_extensions": [
         "*.mp3",
