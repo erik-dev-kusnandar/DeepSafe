@@ -43,15 +43,11 @@
     "audio": {
       "model_endpoints": {
         "vocoder_artifacts": "http://127.0.0.1:7002/predict",
-        "aasist": "http://127.0.0.1:7003/predict",
-        "rawnet2": "http://127.0.0.1:7004/predict",
         "rawgat_st": "http://127.0.0.1:7005/predict",
         "wavlm": "http://127.0.0.1:7006/predict"
       },
       "health_endpoints": {
         "vocoder_artifacts": "http://127.0.0.1:7002/health",
-        "aasist": "http://127.0.0.1:7003/health",
-        "rawnet2": "http://127.0.0.1:7004/health",
         "rawgat_st": "http://127.0.0.1:7005/health",
         "wavlm": "http://127.0.0.1:7006/health"
       },
