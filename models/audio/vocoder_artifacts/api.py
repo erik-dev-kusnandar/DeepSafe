@@ -34,10 +34,12 @@ def load_model():
     """Load the pretrained Vocoder Artifacts detection model."""
     global model, device
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if device.type == "cuda":
-        print("CUDA is available. Disabling cuDNN to prevent CUDNN_STATUS_INTERNAL_ERROR.")
-        torch.backends.cudnn.enabled = False
+    use_gpu = os.environ.get("USE_GPU", "true").lower() == "true"
+    if use_gpu and torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+    print(f"Using device: {device}")
 
     # Initialize model architecture
     model = RawNet(
@@ -88,7 +90,6 @@ def predict():
     Expects JSON: {"audio_data": "base64_encoded_wav_file", "threshold": 0.5}
     """
     try:
-        global model, device
         data = request.json
         audio_b64 = data.get("audio_data")
         threshold = data.get("threshold", 0.5)
@@ -127,22 +128,10 @@ def predict():
         audio_tensor = torch.FloatTensor(audio).unsqueeze(0).to(device)
 
         # Run inference
-        try:
-            with torch.no_grad():
-                output_binary, _ = model(audio_tensor)
-                # Model returns log-softmax, convert to probability
-                prob_fake = torch.exp(output_binary)[0, 1].item()
-        except Exception as e:
-            if ("cuda" in str(e).lower() or "cudnn" in str(e).lower()) and device.type == "cuda":
-                print(f"⚠ CUDA/cuDNN error: {e}. Falling back to CPU for execution.")
-                device = torch.device("cpu")
-                model.to(device)
-                audio_tensor = audio_tensor.to(device)
-                with torch.no_grad():
-                    output_binary, _ = model(audio_tensor)
-                    prob_fake = torch.exp(output_binary)[0, 1].item()
-            else:
-                raise e
+        with torch.no_grad():
+            output_binary, _ = model(audio_tensor)
+            # Model returns log-softmax, convert to probability
+            prob_fake = torch.exp(output_binary)[0, 1].item()
 
         prediction = 1 if prob_fake >= threshold else 0
         verdict = "fake" if prediction == 1 else "real"

@@ -33,7 +33,12 @@ def load_model():
     """Load the pretrained WavLM deepfake detection model from HuggingFace."""
     global model, feature_extractor, device, spoof_idx
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    use_gpu = os.environ.get("USE_GPU", "true").lower() == "true"
+    if use_gpu and torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+    print(f"Using device: {device}")
 
     model_name = "DavidCombei/wavLM-base-Deepfake_V2"
 

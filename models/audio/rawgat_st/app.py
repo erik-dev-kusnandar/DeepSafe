@@ -26,7 +26,12 @@ device = None
 def load_model():
     global model, device
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    use_gpu = os.environ.get("USE_GPU", "true").lower() == "true"
+    if use_gpu and torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+    print(f"Using device: {device}")
 
     d_args = {
         "nb_samp": 64600,

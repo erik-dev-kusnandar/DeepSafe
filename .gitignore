@@ -16,6 +16,10 @@ env/
 
 # Model weights (downloaded via download_weights.sh or Git LFS)
 models/audio/vocoder_artifacts/temp_repo/
+models/audio/vocoder_artifacts/models/
+models/audio/aasist/models/
+models/audio/rawnet2/models/
+models/audio/rawgat_st/models/
 models/audio/wavlm/models/
 
 # Databases
