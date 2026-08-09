@@ -19,6 +19,8 @@ services:
       - wavelet_clip_detection
       - universalfakedetect
       - video-detect
+      - frame-ensemble-video
+      - temporal-consistency-video
       - vocoder_artifacts
       - aasist
       - rawnet2
@@ -204,12 +206,48 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    # Optional: Add resource limits for CPU/memory if this model is resource-intensive
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '2.0' 
-    #       memory: 4G
+
+  frame-ensemble-video:
+    build: ./models/video/frame_ensemble_video
+    ports:
+      - "${FRAME_ENSEMBLE_PORT:-7008}:7008"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7008
+      - FRAMES_PER_VIDEO=15
+      - MODEL_TIMEOUT=300
+      - MAX_WORKERS=8
+      - FACE_REQUIRED=false
+      - NPR_ENDPOINT=http://npr_deepfakedetection:5001/predict
+      - YERMANDY_ENDPOINT=http://yermandy_clip_detection:5002/predict
+      - WAVELET_ENDPOINT=http://wavelet_clip_detection:5003/predict
+      - UNIVERSAL_ENDPOINT=http://universalfakedetect:5004/predict
+      - SPSL_ENDPOINT=http://spsl_deepfake_detection:5006/predict
+      - UCF_ENDPOINT=http://ucf_deepfake_detection:5007/predict
+    networks:
+      - deepsafe-network
+    depends_on:
+      - npr_deepfakedetection
+      - yermandy_clip_detection
+      - wavelet_clip_detection
+      - universalfakedetect
+      - spsl_deepfake_detection
+      - ucf_deepfake_detection
+
+  temporal-consistency-video:
+    build: ./models/video/temporal_consistency_video
+    ports:
+      - "${TEMPORAL_CONSISTENCY_PORT:-7009}:7009"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7009
+      - FRAMES_PER_VIDEO=30
+      - FLOW_CONSISTENCY_WEIGHT=0.35
+      - FACE_MOTION_WEIGHT=0.35
+      - NOISE_WEIGHT=0.15
+      - BLINK_WEIGHT=0.15
+    networks:
+      - deepsafe-network
 
     # --- Audio Model Services ---
   vocoder_artifacts:

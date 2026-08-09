@@ -27,11 +27,15 @@
     "video": {
       "model_endpoints": {
         "cross_efficient_vit": "http://127.0.0.1:7001/predict",
-        "trufor": "http://127.0.0.1:5005/predict"
+        "trufor": "http://127.0.0.1:5005/predict",
+        "frame_ensemble_video": "http://127.0.0.1:7008/predict",
+        "temporal_consistency_video": "http://127.0.0.1:7009/predict"
       },
       "health_endpoints": {
         "cross_efficient_vit": "http://127.0.0.1:7001/health",
-        "trufor": "http://127.0.0.1:5005/health"
+        "trufor": "http://127.0.0.1:5005/health",
+        "frame_ensemble_video": "http://127.0.0.1:7008/health",
+        "temporal_consistency_video": "http://127.0.0.1:7009/health"
       },
       "supported_extensions": [
         "*.mp4",
