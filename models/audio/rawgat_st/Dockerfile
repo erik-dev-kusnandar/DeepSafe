@@ -12,9 +12,12 @@ WORKDIR /app
 
 RUN git clone https://github.com/eurecom-asp/RawGAT-ST-antispoofing.git temp_repo
 
+# torch>=2.8.0+cu128 gives sm_120 (RTX 50-series / Blackwell) support.
 RUN uv pip install --system --no-cache \
-    torch==1.13.1 \
-    torchaudio==0.13.1 \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    torch==2.8.0 \
+    torchaudio==2.8.0
+RUN uv pip install --system --no-cache \
     flask==2.3.0 \
     soundfile==0.12.1 \
     librosa==0.10.0 \

@@ -10,15 +10,18 @@ RUN pip install uv
 
 WORKDIR /app
 
+# torch>=2.8.0+cu128 gives sm_120 (RTX 50-series / Blackwell) support.
 RUN uv pip install --system --no-cache \
-    torch==1.13.1 \
-    torchaudio==0.13.1 \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    torch==2.8.0 \
+    torchaudio==2.8.0
+RUN uv pip install --system --no-cache \
     flask==2.3.0 \
     soundfile==0.12.1 \
     librosa==0.10.0 \
     numpy==1.24.0 \
-    transformers==4.30.0 \
-    huggingface_hub==0.15.0
+    transformers==4.48.3 \
+    huggingface_hub==0.27.0
 
 RUN mkdir -p /app/models
 

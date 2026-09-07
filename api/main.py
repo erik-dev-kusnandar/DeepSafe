@@ -23,6 +23,7 @@ import base64
 import requests
 import logging
 from typing import Dict, Any, List, Optional, Union, Tuple
+from concurrent.futures import ThreadPoolExecutor, Future
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, status
 # pyrefly: ignore [missing-import]
@@ -1083,52 +1084,65 @@ async def predict_media_endpoint_api(request: Request, input_data: PredictInput)
         if not video_face_found:
             logger.info(f"Request {req_id}: NO faces detected in video. Face-centric models will be skipped.")
 
-    for model_name in models_to_use_names:
-        if model_name not in model_endpoints_for_type:
-            logger.warning(
-                f"Request {req_id}: Model '{model_name}' was requested but is not configured for media_type '{media_type}'. Skipping."
-            )
-            model_query_results[model_name] = {
-                "error": f"Model '{model_name}' not configured for media_type '{media_type}'."
-            }
-            continue
-
-        # Face-Aware Model Filtering (disabled — run cross_efficient_vit on any video)
-        # if media_type == "video" and not video_face_found and model_name == "cross_efficient_vit":
-        #     logger.info(f"Request {req_id}: Skipping '{model_name}' because NO face was detected.")
-        #     continue
-
-        if model_name == "trufor" and media_type == "video":
-            # Specialized handler for TruFor on Video (Frame Sampling)
-            logger.info(f"Request {req_id}: Using forensic frame-sampling for TruFor on video.")
-            # Reuse pre-extracted frames if available
-            frames_to_use = video_frames if video_frames else extract_keyframes_from_video_base64(encoded_media_content, num_frames=5)[0]
-            if not frames_to_use:
-                model_query_results[model_name] = {"error": "Failed to extract frames for TruFor analysis."}
-                continue
-                
-            frame_results = []
-            for i, f_data in enumerate(frames_to_use):
-                res = query_model_api(model_name, "image", f_data, input_data.threshold, f"{req_id}_f{i}")
-                if "error" not in res:
-                    frame_results.append(res)
-            
-            if not frame_results:
-                model_query_results[model_name] = {"error": "All TruFor frame queries failed."}
-            else:
-                avg_prob = sum(r["probability"] for r in frame_results) / len(frame_results)
-                # Use the prediction from the average (conservative)
-                avg_pred = 1 if avg_prob >= input_data.threshold else 0
+    # Run model queries concurrently (each model is a separate container) to
+    # bound wall-clock time to the SLOWEST model instead of the sum (esp. audio).
+    MAX_MODEL_WORKERS = 4
+    with ThreadPoolExecutor(max_workers=max(1, min(MAX_MODEL_WORKERS, len(models_to_use_names)))) as _executor:
+        futures: Dict[str, Future] = {}
+        for model_name in models_to_use_names:
+            if model_name not in model_endpoints_for_type:
+                logger.warning(
+                    f"Request {req_id}: Model '{model_name}' was requested but is not configured for media_type '{media_type}'. Skipping."
+                )
                 model_query_results[model_name] = {
-                    "probability": avg_prob,
-                    "prediction": avg_pred,
-                    "class": "fake" if avg_pred == 1 else "real",
-                    "details": f"Averaged from {len(frame_results)} keyframes."
+                    "error": f"Model '{model_name}' not configured for media_type '{media_type}'."
                 }
-        else:
-            model_query_results[model_name] = query_model_api(
-                model_name, media_type, encoded_media_content, input_data.threshold, req_id
-            )
+                continue
+
+            # Face-Aware Model Filtering (disabled — run cross_efficient_vit on any video)
+            # if media_type == "video" and not video_face_found and model_name == "cross_efficient_vit":
+            #     logger.info(f"Request {req_id}: Skipping '{model_name}' because NO face was detected.")
+            #     continue
+
+            if model_name == "trufor" and media_type == "video":
+                # Specialized handler for TruFor on Video (Frame Sampling)
+                logger.info(f"Request {req_id}: Using forensic frame-sampling for TruFor on video.")
+                # Reuse pre-extracted frames if available
+                frames_to_use = video_frames if video_frames else extract_keyframes_from_video_base64(encoded_media_content, num_frames=5)[0]
+                if not frames_to_use:
+                    model_query_results[model_name] = {"error": "Failed to extract frames for TruFor analysis."}
+                    continue
+
+                frame_results = []
+                for i, f_data in enumerate(frames_to_use):
+                    res = query_model_api(model_name, "image", f_data, input_data.threshold, f"{req_id}_f{i}")
+                    if "error" not in res:
+                        frame_results.append(res)
+
+                if not frame_results:
+                    model_query_results[model_name] = {"error": "All TruFor frame queries failed."}
+                else:
+                    avg_prob = sum(r["probability"] for r in frame_results) / len(frame_results)
+                    # Use the prediction from the average (conservative)
+                    avg_pred = 1 if avg_prob >= input_data.threshold else 0
+                    model_query_results[model_name] = {
+                        "probability": avg_prob,
+                        "prediction": avg_pred,
+                        "class": "fake" if avg_pred == 1 else "real",
+                        "details": f"Averaged from {len(frame_results)} keyframes."
+                    }
+            else:
+                futures[model_name] = _executor.submit(
+                    query_model_api,
+                    model_name,
+                    media_type,
+                    encoded_media_content,
+                    input_data.threshold,
+                    req_id,
+                )
+
+        for model_name, fut in futures.items():
+            model_query_results[model_name] = fut.result()
 
     if not any("error" not in r_data for r_data in model_query_results.values()):
         logger.error(

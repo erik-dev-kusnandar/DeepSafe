@@ -71,7 +71,7 @@
   "default_output_dir_base": "./deepsafe_test_results",
   "default_threshold": 0.6,
   "default_ensemble_method": "average",
-  "default_api_timeout_seconds": 1200,
+  "default_api_timeout_seconds": 300,
   "default_model_timeout_seconds_video": 1800,
   "memory_optimization": true,
   "default_max_workers_batch": 1

@@ -111,6 +111,12 @@ def predict():
         # Cast to float32
         audio = audio.astype(np.float32)
 
+        # Bound input length: WavLM sees the FULL utterance; without a cap a long
+        # recording (or CPU fallback) can take minutes. Use the first 60s window.
+        max_samples = 60 * 16000
+        if len(audio) > max_samples:
+            audio = audio[:max_samples]
+
         audio_duration = len(audio) / 16000
 
         # Run inference through the transformer pipeline

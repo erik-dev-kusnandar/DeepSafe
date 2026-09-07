@@ -15,10 +15,12 @@ WORKDIR /app
 # Clone the original repository for model code
 RUN git clone https://github.com/csun22/Synthetic-Voice-Detection-Vocoder-Artifacts.git temp_repo
 
-# Install Python dependencies
+# torch>=2.8.0+cu128 gives sm_120 (RTX 50-series / Blackwell) support.
 RUN uv pip install --system --no-cache \
-    torch==1.13.1 \
-    torchaudio==0.13.1 \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    torch==2.8.0 \
+    torchaudio==2.8.0
+RUN uv pip install --system --no-cache \
     flask==2.3.0 \
     soundfile==0.12.1 \
     librosa==0.10.0 \
