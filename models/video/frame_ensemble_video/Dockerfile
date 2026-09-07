@@ -2,6 +2,10 @@ FROM python:3.9-slim-bullseye
 
 WORKDIR /app
 
+# bullseye is EOL: redirect apt to archive.debian.org (repo moved off deb.debian.org)
+RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null || true; \
+    sed -i '/-security/d; /-updates/d' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null || true
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ffmpeg \

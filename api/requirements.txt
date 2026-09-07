@@ -15,6 +15,6 @@ rich>=13.7.1
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 sqlalchemy==2.0.21
-opencv-python-headless>=4.10.0.84
+opencv-python-headless==4.10.0.84
 numpy>=2.0.0
 python-dotenv
