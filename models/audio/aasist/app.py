@@ -133,7 +133,7 @@ def predict():
             last_hidden, output = model(audio_tensor)
             # output shape: (B, 2) — [spoof_logit, bonafide_logit]
             # Class 0 = spoof, Class 1 = bonafide
-            prob_fake = torch.softmax(output, dim=1)[:, 0].item()
+            prob_fake = float(torch.softmax(output, dim=1)[:, 0].clamp(0.0, 1.0).item())
 
         prediction = 1 if prob_fake >= threshold else 0
         verdict = "fake" if prediction == 1 else "real"

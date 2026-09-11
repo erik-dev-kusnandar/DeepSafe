@@ -125,9 +125,8 @@ def predict():
         audio_tensor = torch.FloatTensor(audio).unsqueeze(0).to(device)
 
         with torch.no_grad():
-            log_probs = model(audio_tensor)
-            probs = torch.exp(log_probs)
-            prob_fake = probs[0, 0].item()
+            logits = model(audio_tensor)
+            prob_fake = torch.sigmoid(logits)[0, 0].item()
 
         prediction = 1 if prob_fake >= threshold else 0
         verdict = "fake" if prediction == 1 else "real"
