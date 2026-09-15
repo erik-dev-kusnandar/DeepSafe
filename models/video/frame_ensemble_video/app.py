@@ -113,18 +113,65 @@ def extract_frames_from_video_bytes(
                 logger.warning(f"Could not remove temp video file: {e}")
 
 
-def detect_faces(frame_rgb: np.ndarray) -> bool:
-    face_cascade_path = os.path.join(
-        cv2.data.haarcascades, "haarcascade_frontalface_default.xml"
-    )
-    face_detector = cv2.CascadeClassifier(face_cascade_path)
-    if face_detector.empty():
-        return True
+def detect_face_boxes(
+    frame_rgb: np.ndarray, min_size: int = 40
+) -> List[Tuple[int, int, int, int]]:
+    detector = _get_face_detector()
+    if detector.empty():
+        return []
     gray = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2GRAY)
-    faces = face_detector.detectMultiScale(
-        gray, scaleFactor=1.1, minNeighbors=8, minSize=(80, 80)
-    )
-    return len(faces) > 0
+    scale = 2 if gray.shape[1] < 900 else 1
+    boxes = []
+    if scale > 1:
+        up = cv2.resize(gray, (gray.shape[1] * scale, gray.shape[0] * scale))
+        dets = detector.detectMultiScale(
+            up, scaleFactor=1.1, minNeighbors=6, minSize=(min_size, min_size)
+        )
+        for (x, y, w, h) in dets:
+            boxes.append((x // scale, y // scale, w // scale, h // scale))
+    else:
+        dets = detector.detectMultiScale(
+            gray, scaleFactor=1.1, minNeighbors=6, minSize=(min_size, min_size)
+        )
+        boxes = [(int(x), int(y), int(w), int(h)) for (x, y, w, h) in dets]
+    return boxes
+
+
+_face_detector = None
+
+
+def _get_face_detector():
+    global _face_detector
+    if _face_detector is None:
+        _face_detector = cv2.CascadeClassifier(
+            os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
+        )
+    return _face_detector
+
+
+def crop_or_full_frame(
+    frame_rgb: np.ndarray, max_dim: int = 512
+) -> Tuple[np.ndarray, bool]:
+    """Return the largest detected face crop (with margin) for model inference.
+
+    Falls back to the full frame when no face is detected so non-face video
+    still gets processed. ``has_face`` tells callers whether a face was used.
+    """
+    boxes = detect_face_boxes(frame_rgb)
+    if not boxes:
+        return frame_rgb, False
+    x, y, w, h = max(boxes, key=lambda b: b[2] * b[3])
+    fx, fy = 0.35, 0.35
+    x0 = max(0, int(x - w * fx))
+    y0 = max(0, int(y - h * fy))
+    x1 = min(frame_rgb.shape[1], int(x + w + w * fx))
+    y1 = min(frame_rgb.shape[0], int(y + h + h * fy))
+    crop = frame_rgb[y0:y1, x0:x1]
+    hc, wc = crop.shape[:2]
+    if max(hc, wc) > max_dim:
+        r = max_dim / max(hc, wc)
+        crop = cv2.resize(crop, (int(wc * r), int(hc * r)), interpolation=cv2.INTER_AREA)
+    return crop, True
 
 
 def frame_to_base64(frame_rgb: np.ndarray) -> str:
@@ -165,7 +212,7 @@ def process_video_and_predict(
         }
 
     if FACE_REQUIRED:
-        any_face = any(detect_faces(f) for f in frames_rgb)
+        any_face = any(len(detect_face_boxes(f)) > 0 for f in frames_rgb)
         if not any_face:
             logger.info("No faces detected in video, returning default.")
             return {
@@ -175,7 +222,16 @@ def process_video_and_predict(
                 "details": "No faces detected",
             }
 
-    frame_b64_list = [frame_to_base64(f) for f in frames_rgb]
+    frames_with_faces = 0
+    frame_b64_list = []
+    for f in frames_rgb:
+        model_frame, has_face = crop_or_full_frame(f)
+        if has_face:
+            frames_with_faces += 1
+        frame_b64_list.append(frame_to_base64(model_frame))
+    logger.info(
+        f"Frames with cropped faces: {frames_with_faces}/{len(frames_rgb)}"
+    )
 
     per_model_scores: Dict[str, List[float]] = {m: [] for m in IMAGE_MODEL_ENDPOINTS}
 
@@ -223,7 +279,8 @@ def process_video_and_predict(
         "inference_time": 0.0,
         "details": {
             "frame_count": len(frames_rgb),
-            "frames_with_faces": None,
+            "frames_with_faces": frames_with_faces,
+            "face_crop_applied": frames_with_faces > 0,
             "per_model_frame_averages": {
                 m: {
                     "mean_probability": round(per_model_mean[m], 4),
