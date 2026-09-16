@@ -265,13 +265,6 @@ services:
       - DEFAULT_THRESHOLD=0.55
     networks:
       - deepsafe-network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
 
   univfd-video:
     build: ./models/video/univfd_video

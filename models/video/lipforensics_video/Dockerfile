@@ -21,10 +21,10 @@ WORKDIR /app
 # LipForensics repo (model code + preprocessing + mean face + configs)
 RUN git clone --depth 1 https://github.com/ahaliassos/LipForensics.git /app/model
 
-# torch + torchvision CUDA (cu124)
+# torch + torchvision CUDA (cu126, sm_120/Blackwell compatible)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir torch==2.5.1+cu124 torchvision==0.20.1+cu124 \
-        --index-url https://download.pytorch.org/whl/cu124
+    pip install --no-cache-dir torch==2.7.1+cu126 torchvision==0.21.0+cu126 \
+        --index-url https://download.pytorch.org/whl/cu126
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

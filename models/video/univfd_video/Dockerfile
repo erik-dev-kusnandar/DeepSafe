@@ -16,9 +16,10 @@ ENV QT_QPA_PLATFORM=offscreen
 
 WORKDIR /app
 
-# torch + torchvision CPU-only (smaller image, no nvidia runtime needed)
+# torch + torchvision CUDA (cu126, sm_120/Blackwell compatible)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+    pip install --no-cache-dir torch==2.7.1+cu126 torchvision==0.21.0+cu126 \
+        --index-url https://download.pytorch.org/whl/cu126
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
