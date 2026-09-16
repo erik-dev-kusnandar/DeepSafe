@@ -20,7 +20,7 @@ curl -fL --retry 3 -o fc_weights.pth \
 echo "   -> $(du -h fc_weights.pth | cut -f1)"
 
 echo "== 2/2 LipForensics (lipforensics_ff.pth, Google Drive) =="
-gdown --id 1wfZnxZpyNd5ouJs0LjVls7zU0N_W73L7 -O lipforensics_ff.pth
+gdown "https://drive.google.com/uc?id=1wfZnxZpyNd5ouJs0LjVls7zU0N_W73L7" -O lipforensics_ff.pth
 echo "   -> $(du -h lipforensics_ff.pth | cut -f1)"
 
 echo "== 3/3 FTCN+TT (ftcn_tt.pth, GitHub Release) =="

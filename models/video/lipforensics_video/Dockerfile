@@ -31,7 +31,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # LipForensics FF++ weights (lipforensics_ff.pth, Google Drive)
 RUN pip install --no-cache-dir gdown && \
     mkdir -p /app/weights && \
-    gdown --id 1wfZnxZpyNd5ouJs0LjVls7zU0N_W73L7 -O /app/weights/lipforensics_ff.pth
+    gdown "https://drive.google.com/uc?id=1wfZnxZpyNd5ouJs0LjVls7zU0N_W73L7" -O /app/weights/lipforensics_ff.pth
 
 COPY app.py lip_core.py ./
 
