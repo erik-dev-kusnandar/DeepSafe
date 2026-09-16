@@ -52,6 +52,24 @@ def process_video_and_predict(video_bytes: bytes, threshold: float) -> dict:
         tmp.write(video_bytes)
         tmp.close()
         result = lip_core.run_inference(tmp_name)
+    except ValueError as ve:
+        err_str = str(ve)
+        if any(msg in err_str for msg in ["No faces detected", "No face tracks found", "No frames could be read"]):
+            logger.warning(f"LipForensics note: {err_str}")
+            return {
+                "probability": 0.5,
+                "prediction": 0,
+                "class": "real",
+                "inference_time": 0.0,
+                "details": {
+                    "total_frames_in_video": 0,
+                    "frames_analyzed": 0,
+                    "clips_evaluated": 0,
+                    "note": err_str,
+                    "no_faces_detected": True,
+                },
+            }
+        raise
     finally:
         try:
             os.remove(tmp_name)
