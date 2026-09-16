@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 os.environ.setdefault("OMP_NUM_THREADS", "8")
 
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
 LIB_DIR = os.environ.get("LIP_MODEL_DIR", "/app/model")
 CKPT_PATH = os.environ.get("LIP_CHECKPOINT", "/app/weights/lipforensics_ff.pth")
 MEAN_FACE_PATH = os.path.join(LIB_DIR, "preprocessing", "20words_mean_face.npy")
@@ -83,10 +85,13 @@ def _ensure_loaded() -> None:
             state = {k[7:]: v for k, v in state.items()}
         model.load_state_dict(state)
         model.eval()
+        if DEVICE == "cuda":
+            model = model.to(DEVICE)
+            logger.info("Lipreading model moved to CUDA")
 
         fa = face_alignment.FaceAlignment(
             face_alignment.LandmarksType.TWO_D,
-            device="cpu",
+            device=DEVICE,
             face_detector="sfd",
             flip_input=False,
         )
@@ -222,7 +227,7 @@ def run_inference(video_path: str) -> Dict[str, Any]:
     logits: List[float] = []
     with torch.no_grad():
         for c in clips:
-            out = _model(c.unsqueeze(0), lengths=[c.shape[1]])
+            out = _model(c.unsqueeze(0).to(DEVICE), lengths=[c.shape[1]])
             logits.append(float(out.squeeze(0).squeeze(0).item()))
 
     prob = float(torch.sigmoid(torch.tensor(logits).mean()).item())

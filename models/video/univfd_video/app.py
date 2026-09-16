@@ -56,6 +56,8 @@ IMAGENET_STATS = {
     "std": (0.26862954, 0.26130258, 0.27577711),
 }
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 _model_lock = threading.Lock()
 _model: Optional[nn.Module] = None
 _fc: Optional[nn.Linear] = None
@@ -79,7 +81,7 @@ def _ensure_loaded() -> None:
         if _model_loaded:
             return
         logger.info(
-            f"Loading open_clip '{CLIP_MODEL_NAME}' (pretrained='{CLIP_PRETRAINED}') on CPU..."
+            f"Loading open_clip '{CLIP_MODEL_NAME}' (pretrained='{CLIP_PRETRAINED}') on {DEVICE.type}..."
         )
         model, _, _ = open_clip.create_model_and_transforms(
             CLIP_MODEL_NAME, pretrained=CLIP_PRETRAINED
@@ -90,6 +92,10 @@ def _ensure_loaded() -> None:
         fc = nn.Linear(CLIP_FEAT_DIM, 1)
         fc.load_state_dict(torch.load(FC_WEIGHTS_PATH, map_location="cpu"))
         fc.eval()
+        if DEVICE.type == "cuda":
+            model = model.to(DEVICE)
+            fc = fc.to(DEVICE)
+            logger.info("UnivFD model moved to CUDA")
 
         # Official repo eval transform: CenterCrop(224) only (no prior resize),
         # CLIP normalization. Do NOT use open_clip's preprocess (it resizes first).
@@ -133,7 +139,7 @@ def _extract_frames(video_bytes: bytes) -> (List[np.ndarray], int):
 
 
 def _score_frame(frame_rgb: np.ndarray) -> float:
-    x = _transform(Image.fromarray(frame_rgb)).unsqueeze(0)
+    x = _transform(Image.fromarray(frame_rgb)).unsqueeze(0).to(DEVICE)
     with torch.no_grad():
         feats = _model.encode_image(x)  # projected, un-normalized 768-dim
         logit = _fc(feats)

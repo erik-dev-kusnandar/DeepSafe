@@ -265,6 +265,13 @@ services:
       - DEFAULT_THRESHOLD=0.55
     networks:
       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   univfd-video:
     build: ./models/video/univfd_video
@@ -279,6 +286,13 @@ services:
       - DEFAULT_THRESHOLD=0.55
     networks:
       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   lipforensics-video:
     build: ./models/video/lipforensics_video
@@ -294,6 +308,13 @@ services:
       - DEFAULT_THRESHOLD=0.55
     networks:
       - deepsafe-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
     # --- Audio Model Services ---
   vocoder_artifacts:

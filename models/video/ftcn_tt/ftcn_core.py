@@ -1,4 +1,4 @@
-"""FTCN+TT inference on CPU (ported from FTCN repo test_on_raw_video.py).
+"""FTCN+TT inference (ported from FTCN repo test_on_raw_video.py).
 
 Runs the full FTCN+TT pipeline: RetinaFace face detection -> 68 landmarks ->
 multi-face tracking -> 32-frame clip sampling -> I3D temporal-transformer
@@ -32,6 +32,9 @@ logger = logging.getLogger(__name__)
 
 MAX_FRAME = int(os.environ.get("FTCN_MAX_FRAME", "240"))
 NUM_THREADS = int(os.environ.get("FTCN_NUM_THREADS", "8"))
+
+_DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+GPU_ID = 0 if _DEVICE.type == "cuda" else -1
 
 mean = torch.tensor([0.485 * 255, 0.456 * 255, 0.406 * 255]).view(1, 3, 1, 1, 1)
 std = torch.tensor([0.229 * 255, 0.224 * 255, 0.225 * 255]).view(1, 3, 1, 1, 1)
@@ -79,7 +82,7 @@ def _ensure_loaded() -> None:
     with _LOAD_LOCK:
         if _loaded:
             return
-        logger.info("Initializing FTCN+TT (CPU)...")
+        logger.info("Initializing FTCN+TT (%s)...", _DEVICE.type.upper())
         cfg.init_with_yaml()
         cfg.update_with_yaml("ftcn_tt.yaml")
         cfg.freeze()
@@ -88,11 +91,14 @@ def _ensure_loaded() -> None:
         classifier = PluginLoader.get_classifier(cfg.classifier_type)()
         classifier.eval()
         classifier.load("checkpoints/ftcn_tt.pth")
+        if _DEVICE.type == "cuda":
+            classifier = classifier.to(_DEVICE)
+            logger.info("FTCN+TT classifier moved to CUDA")
 
         _cls = classifier
         _crop_align = FasterCropAlignXRay(cfg.imsize)
-        _detector = FaceDetector(-1)
-        _predictor = LandmarkPredictor(-1)
+        _detector = FaceDetector(GPU_ID)
+        _predictor = LandmarkPredictor(GPU_ID)
         _loaded = True
         logger.info("FTCN+TT initialized (max_frame=%d, threads=%d)", MAX_FRAME, NUM_THREADS)
 
@@ -200,7 +206,7 @@ def run_inference(video_path: str) -> Dict[str, Any]:
 
         landmarks, images = _crop_align(landmarks, images)
         images_t = torch.as_tensor(images, dtype=torch.float32).permute(3, 0, 1, 2)
-        images_t = images_t.unsqueeze(0).sub(mean).div(std)
+        images_t = images_t.unsqueeze(0).to(_DEVICE).sub(mean.to(_DEVICE)).div(std.to(_DEVICE))
 
         with torch.no_grad():
             output = _cls(images_t)

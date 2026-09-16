@@ -26,11 +26,11 @@ RUN git clone --depth 1 https://github.com/yinglinzheng/FTCN.git /app/model && \
     python -c 'p="/app/model/model/classifier/i3d_temporal_var_fix_dropout_tt_cfg.py"; s=open(p).read(); old="parameters = [parameter for parameter in signature(nn.Conv3d).parameters]"; new="parameters = [parameter for parameter in signature(nn.Conv3d).parameters if parameter not in (\"device\", \"dtype\")]"; assert old in s, "pattern not found"; open(p,"w").write(s.replace(old,new))' && \
     python -c 'p="/app/model/test_tools/ct/detection/alignment.py"; s=open(p).read(); old="pretrained_dict = torch.utils.model_zoo.load_url(url)"; new="pretrained_dict = torch.utils.model_zoo.load_url(url, map_location=\"cpu\")"; assert old in s, "url pattern not found"; open(p,"w").write(s.replace(old,new))'
 
-# torch 1.13.1 CPU – can load CUDA-saved checkpoints on CPU
+# torch 1.13.1 CUDA (cu117) – can run GPU inference if a GPU is exposed
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir torch==1.13.1+cpu torchvision==0.14.1+cpu \
-        --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir torch==1.13.1+cu117 torchvision==0.14.1+cu117 \
+        --index-url https://download.pytorch.org/whl/cu117 && \
     pip install --no-cache-dir -r requirements.txt
 
 # FTCN+TT classifier weights
