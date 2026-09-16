@@ -4,6 +4,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
+    git \
     ffmpeg \
     libsm6 \
     libxext6 \
