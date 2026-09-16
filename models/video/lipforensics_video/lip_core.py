@@ -203,7 +203,7 @@ def run_inference(video_path: str) -> Dict[str, Any]:
     mouths = _fill_missing(mouths)
 
     gray = [np.mean(m.astype(np.float32), axis=2, keepdims=True).astype(np.uint8) for m in mouths]
-    x = torch.from_numpy(np.asarray(gray)).unsqueeze(-1)  # (T,H,W,1)
+    x = torch.from_numpy(np.asarray(gray))  # (T,H,W,1)
     x = _tf(x)  # (1,T,88,88)
 
     T = x.shape[1]
