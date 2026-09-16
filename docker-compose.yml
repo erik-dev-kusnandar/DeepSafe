@@ -21,6 +21,7 @@ services:
       - video-detect
       - frame-ensemble-video
       - temporal-consistency-video
+      - ftcn-tt-video
       - vocoder_artifacts
       - aasist
       - rawnet2
@@ -246,6 +247,20 @@ services:
       - FACE_MOTION_WEIGHT=0.35
       - NOISE_WEIGHT=0.15
       - BLINK_WEIGHT=0.15
+    networks:
+      - deepsafe-network
+
+  ftcn-tt-video:
+    build: ./models/video/ftcn_tt
+    container_name: deepsafe-ftcn-tt-video
+    ports:
+      - "${FTCN_TT_PORT:-7010}:7010"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7010
+      - FTCN_MAX_FRAME=${FTCN_MAX_FRAME:-240}
+      - FTCN_NUM_THREADS=8
+      - DEFAULT_THRESHOLD=0.55
     networks:
       - deepsafe-network
 

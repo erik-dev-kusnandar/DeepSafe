@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download pretrained weights for the replacement video models (UnivFD + LipForensics).
+# Download pretrained weights for the replacement video models (UnivFD + LipForensics + FTCN+TT).
 # TALL++ (rainy-xu/TALL4Deepfake) does NOT ship a public pretrained checkpoint,
 # so it is skipped here (needs training on FF++ yourself or contacting the authors).
 set -euo pipefail
@@ -23,8 +23,13 @@ echo "== 2/2 LipForensics (lipforensics_ff.pth, Google Drive) =="
 gdown --id 1wfZnxZpyNd5ouJs0LjVls7zU0N_W73L7 -O lipforensics_ff.pth
 echo "   -> $(du -h lipforensics_ff.pth | cut -f1)"
 
+echo "== 3/3 FTCN+TT (ftcn_tt.pth, GitHub Release) =="
+curl -fL --retry 3 -o ftcn_tt.pth \
+  https://github.com/yinglinzheng/FTCN/releases/download/weights/ftcn_tt.pth
+echo "   -> $(du -h ftcn_tt.pth | cut -f1)"
+
 echo
 echo "Selesai. Berkas tersimpan di: $OUT"
 echo "Note: UnivFD backbone (CLIP ViT-L/14, OpenAI) di-download otomatis oleh open_clip pada saat run pertama."
-echo "Note: TALL++ tidak punya pretrained publik -> dilewati."
+echo "Note: TALL++ tidak punya pretrained publik -> dilewati; FTCN+TT dipakai sebagai penggantinya."
 ls -lh "$OUT"
