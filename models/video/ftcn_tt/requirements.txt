@@ -10,7 +10,7 @@ tqdm==4.66.1
 termcolor==1.1.0
 six==1.16.0
 simplejson==3.19.2
-fvcore==0.1.5
+fvcore==0.1.5.post20221221
 einops==0.6.1
 matplotlib==3.3.4
 filterpy==1.4.5
