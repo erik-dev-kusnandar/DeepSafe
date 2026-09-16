@@ -6,3 +6,11 @@ opencv-python-headless==4.8.1.78
 scipy==1.5.3
 pyyaml==5.4.1
 tqdm==4.66.1
+# required by FTCN repo code (logger, tracking, classifier)
+termcolor==1.1.0
+six==1.16.0
+simplejson==3.19.2
+fvcore==0.1.5
+einops==0.6.1
+matplotlib==3.3.4
+filterpy==1.4.5
