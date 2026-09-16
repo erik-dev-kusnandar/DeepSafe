@@ -18,7 +18,7 @@ WORKDIR /app
 
 # torch + torchvision CUDA (cu128, sm_120/Blackwell compatible)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir torch==2.7.1+cu128 torchvision==0.22.0+cu128 \
+    pip install --no-cache-dir torch==2.7.0+cu128 torchvision==0.22.0+cu128 \
         --index-url https://download.pytorch.org/whl/cu128
 
 COPY requirements.txt .
