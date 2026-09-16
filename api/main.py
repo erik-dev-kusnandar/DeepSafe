@@ -536,11 +536,20 @@ class PredictInput(BaseModel):
                 media_type_config.get("model_endpoints", {}).keys()
             )
 
-            for model_name in v_models:
-                if model_name not in available_models_for_type:
-                    raise ValueError(
-                        f"Unknown model '{model_name}' specified for media_type '{media_type}'. Available models for '{media_type}': {available_models_for_type}"
-                    )
+            valid_models = [m for m in v_models if m in available_models_for_type]
+            if not valid_models:
+                logger.warning(
+                    f"None of requested models {v_models} match available models for media_type '{media_type}'. "
+                    f"Falling back to available models: {available_models_for_type}"
+                )
+                return available_models_for_type
+            if len(valid_models) < len(v_models):
+                ignored = [m for m in v_models if m not in available_models_for_type]
+                logger.warning(
+                    f"Ignored unavailable models {ignored} for media_type '{media_type}'. "
+                    f"Using available models: {valid_models}"
+                )
+            return valid_models
         return v_models
 
     @field_validator("image_data", "video_data", "audio_data", mode="before")
