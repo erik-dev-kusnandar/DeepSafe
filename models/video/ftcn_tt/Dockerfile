@@ -24,11 +24,11 @@ WORKDIR /app
 # FTCN repo (weights: ftcn_tt.pth + test_tools / model code)
 RUN git clone --depth 1 https://github.com/yinglinzheng/FTCN.git /app/model
 
-# torch 1.4 CPU (matches FTCN codebase)
+# torch 1.13.1 CPU – can load CUDA-saved checkpoints on CPU
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir torch==1.4.0 torchvision==0.5.0 \
-        -f https://download.pytorch.org/whl/cpu/torch_stable.html && \
+    pip install --no-cache-dir torch==1.13.1+cpu torchvision==0.14.1+cpu \
+        --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
 
 # FTCN+TT classifier weights
