@@ -149,7 +149,10 @@ def _crop_mouths(rgb_frames: List[np.ndarray]) -> List[Optional[np.ndarray]]:
 
     lm_all: List[Optional[np.ndarray]] = []
     for x in lms_list:
-        lm = np.float32(x[0]) if (x is not None and len(x) > 0) else None
+        lm = None
+        if x is not None and len(x) > 0:
+            arr = np.asarray(x).reshape(-1, 68, 2)
+            lm = np.float32(arr[0])
         if lm is not None and scale < 1.0:
             lm = lm / scale
         lm_all.append(lm)
