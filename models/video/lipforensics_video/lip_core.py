@@ -83,7 +83,10 @@ def _ensure_loaded() -> None:
         model.eval()
 
         fa = face_alignment.FaceAlignment(
-            face_alignment.LandmarksType.TWO_D, face_detector="sfd", flip_input=False
+            face_alignment.LandmarksType.TWO_D,
+            device="cpu",
+            face_detector="sfd",
+            flip_input=False,
         )
 
         _model, _fa, _mean_face, _tf = (
