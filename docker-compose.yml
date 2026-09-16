@@ -22,6 +22,8 @@ services:
       - frame-ensemble-video
       - temporal-consistency-video
       - ftcn-tt-video
+      - univfd-video
+      - lipforensics-video
       - vocoder_artifacts
       - aasist
       - rawnet2
@@ -260,6 +262,35 @@ services:
       - MODEL_PORT=7010
       - FTCN_MAX_FRAME=${FTCN_MAX_FRAME:-240}
       - FTCN_NUM_THREADS=8
+      - DEFAULT_THRESHOLD=0.55
+    networks:
+      - deepsafe-network
+
+  univfd-video:
+    build: ./models/video/univfd_video
+    container_name: deepsafe-univfd-video
+    ports:
+      - "${UNIVFD_PORT:-7011}:7011"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7011
+      - FRAMES_PER_VIDEO=15
+      - PRELOAD_MODEL=${PRELOAD_MODEL:-false}
+      - DEFAULT_THRESHOLD=0.55
+    networks:
+      - deepsafe-network
+
+  lipforensics-video:
+    build: ./models/video/lipforensics_video
+    container_name: deepsafe-lipforensics-video
+    ports:
+      - "${LIPFORENSICS_PORT:-7012}:7012"
+    restart: unless-stopped
+    environment:
+      - MODEL_PORT=7012
+      - LIP_MAX_FRAMES=110
+      - LIP_CLIP_SIZE=25
+      - LIP_NUM_THREADS=8
       - DEFAULT_THRESHOLD=0.55
     networks:
       - deepsafe-network
