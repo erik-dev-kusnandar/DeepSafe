@@ -130,7 +130,8 @@ def _smooth_landmarks(lm_all: List[Optional[np.ndarray]], i: int) -> Optional[np
 
 
 def _crop_mouths(rgb_frames: List[np.ndarray]) -> List[Optional[np.ndarray]]:
-    lms = _fa.get_landmarks_from_batch(rgb_frames)
+    batch = torch.from_numpy(np.stack(rgb_frames)).permute(0, 3, 1, 2)
+    lms = _fa.get_landmarks_from_batch(batch)
     lm_all: List[Optional[np.ndarray]] = []
     for x in (lms or []):
         lm_all.append(np.float32(x[0]) if (x is not None and len(x) > 0) else None)
