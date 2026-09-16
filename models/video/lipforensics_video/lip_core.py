@@ -36,6 +36,8 @@ CONFIG_PATH = os.path.join(LIB_DIR, "models", "configs", "lrw_resnet18_mstcn.jso
 MAX_FRAMES = int(os.environ.get("LIP_MAX_FRAMES", "110"))
 FRAMES_PER_CLIP = int(os.environ.get("LIP_CLIP_SIZE", "25"))
 NUM_THREADS = int(os.environ.get("LIP_NUM_THREADS", "8"))
+DETECT_MAX_SIDE = int(os.environ.get("LIP_DETECT_MAX_SIDE", "640"))
+DETECT_CHUNK = int(os.environ.get("LIP_DETECT_CHUNK", "32"))
 
 STD_SIZE = (256, 256)
 STABLE_POINTS = [33, 36, 39, 42, 45]
@@ -130,11 +132,27 @@ def _smooth_landmarks(lm_all: List[Optional[np.ndarray]], i: int) -> Optional[np
 
 
 def _crop_mouths(rgb_frames: List[np.ndarray]) -> List[Optional[np.ndarray]]:
-    batch = torch.from_numpy(np.stack(rgb_frames)).permute(0, 3, 1, 2)
-    lms = _fa.get_landmarks_from_batch(batch)
+    h, w = rgb_frames[0].shape[:2]
+    scale = min(DETECT_MAX_SIDE / float(max(h, w)), 1.0)
+    frames = rgb_frames
+    if scale < 1.0:
+        tw, th = int(round(w * scale)), int(round(h * scale))
+        frames = [
+            cv2.resize(f, (tw, th), interpolation=cv2.INTER_LINEAR) for f in rgb_frames
+        ]
+
+    lms_list: List[Optional[List[np.ndarray]]] = []
+    for i in range(0, len(frames), DETECT_CHUNK):
+        chunk = frames[i:i + DETECT_CHUNK]
+        batch = torch.from_numpy(np.stack(chunk)).permute(0, 3, 1, 2)
+        lms_list.extend(_fa.get_landmarks_from_batch(batch) or [])
+
     lm_all: List[Optional[np.ndarray]] = []
-    for x in (lms or []):
-        lm_all.append(np.float32(x[0]) if (x is not None and len(x) > 0) else None)
+    for x in lms_list:
+        lm = np.float32(x[0]) if (x is not None and len(x) > 0) else None
+        if lm is not None and scale < 1.0:
+            lm = lm / scale
+        lm_all.append(lm)
 
     mouths: List[Optional[np.ndarray]] = []
     for i in range(len(rgb_frames)):

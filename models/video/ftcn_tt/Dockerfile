@@ -23,7 +23,8 @@ WORKDIR /app
 
 # FTCN repo (weights: ftcn_tt.pth + test_tools / model code)
 RUN git clone --depth 1 https://github.com/yinglinzheng/FTCN.git /app/model && \
-    python -c 'p="/app/model/model/classifier/i3d_temporal_var_fix_dropout_tt_cfg.py"; s=open(p).read(); old="parameters = [parameter for parameter in signature(nn.Conv3d).parameters]"; new="parameters = [parameter for parameter in signature(nn.Conv3d).parameters if parameter not in (\"device\", \"dtype\")]"; assert old in s, "pattern not found"; open(p,"w").write(s.replace(old,new))'
+    python -c 'p="/app/model/model/classifier/i3d_temporal_var_fix_dropout_tt_cfg.py"; s=open(p).read(); old="parameters = [parameter for parameter in signature(nn.Conv3d).parameters]"; new="parameters = [parameter for parameter in signature(nn.Conv3d).parameters if parameter not in (\"device\", \"dtype\")]"; assert old in s, "pattern not found"; open(p,"w").write(s.replace(old,new))' && \
+    python -c 'p="/app/model/test_tools/ct/detection/alignment.py"; s=open(p).read(); old="pretrained_dict = torch.utils.model_zoo.load_url(url)"; new="pretrained_dict = torch.utils.model_zoo.load_url(url, map_location=\"cpu\")"; assert old in s, "url pattern not found"; open(p,"w").write(s.replace(old,new))'
 
 # torch 1.13.1 CPU – can load CUDA-saved checkpoints on CPU
 COPY requirements.txt .
