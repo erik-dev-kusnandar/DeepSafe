@@ -222,7 +222,7 @@ def run_inference(video_path: str) -> Dict[str, Any]:
     logits: List[float] = []
     with torch.no_grad():
         for c in clips:
-            out = _model(c, lengths=[c.shape[1]])
+            out = _model(c.unsqueeze(0), lengths=[c.shape[1]])
             logits.append(float(out.squeeze(0).squeeze(0).item()))
 
     prob = float(torch.sigmoid(torch.tensor(logits).mean()).item())
