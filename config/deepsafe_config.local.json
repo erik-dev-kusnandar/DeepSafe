@@ -26,16 +26,14 @@
     },
     "video": {
       "model_endpoints": {
+        "cross_efficient_vit": "http://127.0.0.1:7007/predict",
         "frame_ensemble_video": "http://127.0.0.1:7008/predict",
-        "ftcn_tt_video": "http://127.0.0.1:7010/predict",
-        "univfd_video": "http://127.0.0.1:7011/predict",
-        "lipforensics_video": "http://127.0.0.1:7012/predict"
+        "temporal_consistency_video": "http://127.0.0.1:7009/predict"
       },
       "health_endpoints": {
+        "cross_efficient_vit": "http://127.0.0.1:7007/health",
         "frame_ensemble_video": "http://127.0.0.1:7008/health",
-        "ftcn_tt_video": "http://127.0.0.1:7010/health",
-        "univfd_video": "http://127.0.0.1:7011/health",
-        "lipforensics_video": "http://127.0.0.1:7012/health"
+        "temporal_consistency_video": "http://127.0.0.1:7009/health"
       },
       "supported_extensions": [
         "*.mp4",
