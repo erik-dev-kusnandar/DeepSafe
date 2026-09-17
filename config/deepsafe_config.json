@@ -32,11 +32,13 @@
     },
     "video": {
       "model_endpoints": {
+        "frame_ensemble_video": "http://frame-ensemble-video:7008/predict",
         "ftcn_tt_video": "http://ftcn-tt-video:7010/predict",
         "univfd_video": "http://univfd-video:7011/predict",
         "lipforensics_video": "http://lipforensics-video:7012/predict"
       },
       "health_endpoints": {
+        "frame_ensemble_video": "http://frame-ensemble-video:7008/health",
         "ftcn_tt_video": "http://ftcn-tt-video:7010/health",
         "univfd_video": "http://univfd-video:7011/health",
         "lipforensics_video": "http://lipforensics-video:7012/health"
