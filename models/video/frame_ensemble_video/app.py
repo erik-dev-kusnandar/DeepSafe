@@ -246,18 +246,18 @@ def process_video_and_predict(
 
     per_model_scores: Dict[str, List[float]] = {m: [] for m in IMAGE_MODEL_ENDPOINTS}
 
-    for frame_idx, frame_b64 in enumerate(frame_b64_list):
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_map = {
-                executor.submit(
-                    query_image_model, m, url, frame_b64, input_threshold
-                ): m
-                for m, url in IMAGE_MODEL_ENDPOINTS.items()
-            }
-            for future in as_completed(future_map):
-                m_name, prob, pred, label = future.result()
-                if prob is not None:
-                    per_model_scores[m_name].append(prob)
+    with ThreadPoolExecutor(max_workers=max(MAX_WORKERS * 2, 16)) as executor:
+        future_map = {
+            executor.submit(
+                query_image_model, m, url, frame_b64, input_threshold
+            ): m
+            for frame_b64 in frame_b64_list
+            for m, url in IMAGE_MODEL_ENDPOINTS.items()
+        }
+        for future in as_completed(future_map):
+            m_name, prob, pred, label = future.result()
+            if prob is not None:
+                per_model_scores[m_name].append(prob)
 
     per_model_mean: Dict[str, float] = {}
     per_model_std: Dict[str, float] = {}
