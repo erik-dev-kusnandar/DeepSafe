@@ -696,10 +696,17 @@ def query_model_api(
 
     payload = {payload_key: encoded_media_data, "threshold": threshold}
 
+    model_timeout = int(
+        ALL_MODEL_CONFIGS.get(
+            f"default_model_timeout_seconds_{media_type}",
+            ALL_MODEL_CONFIGS.get("default_api_timeout_seconds", 900),
+        )
+    )
+
     for attempt in range(MAX_RETRIES + 1):
         try:
             response = requests.post(
-                model_predict_url, json=payload, timeout=DEFAULT_TIMEOUT
+                model_predict_url, json=payload, timeout=model_timeout
             )
             response.raise_for_status()
             result = response.json()

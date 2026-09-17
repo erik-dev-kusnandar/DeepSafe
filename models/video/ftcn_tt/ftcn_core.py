@@ -187,13 +187,22 @@ def run_inference(video_path: str) -> Dict[str, Any]:
             inner_index = pre_module + inner_index + post_module
 
         super_clip_size = len(inner_index)
+        stride = 3
         frame_range = [
             inner_index[i : i + clip_size]
-            for i in range(super_clip_size)
-            if i + clip_size <= super_clip_size
+            for i in range(0, super_clip_size - clip_size + 1, stride)
         ]
+        if not frame_range and super_clip_size >= clip_size:
+            frame_range = [inner_index[:clip_size]]
         for indices in frame_range:
             clips_for_video.append([(super_clip_idx, t) for t in indices])
+
+    # Cap maximum total clips evaluated per video to avoid extreme processing times & timeouts
+    MAX_CLIPS_CAP = 150
+    if len(clips_for_video) > MAX_CLIPS_CAP:
+        step = len(clips_for_video) / MAX_CLIPS_CAP
+        sampled_indices = [int(i * step) for i in range(MAX_CLIPS_CAP)]
+        clips_for_video = [clips_for_video[idx] for idx in sampled_indices]
 
     preds = []
     frame_res: Dict[int, List[float]] = {}
