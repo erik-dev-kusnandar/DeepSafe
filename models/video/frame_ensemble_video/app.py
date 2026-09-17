@@ -278,10 +278,7 @@ def process_video_and_predict(
             "details": "No model results",
         }
 
-    # Max risk aggregation across sub-models prevents specialized detectors (e.g. NPR) from being diluted
-    avg_prob = float(np.mean(ensemble_probs))
-    max_prob = float(np.max(ensemble_probs))
-    final_prob = max_prob if max_prob >= 0.65 else avg_prob
+    final_prob = float(np.mean(ensemble_probs))
 
     final_prediction = 1 if final_prob >= input_threshold else 0
     final_class_label = "fake" if final_prediction == 1 else "real"
