@@ -32,14 +32,14 @@
     },
     "video": {
       "model_endpoints": {
-        "cross_efficient_vit": "http://cross_efficient_vit:7007/predict",
+        "cross_efficient_vit": "http://video-detect:7001/predict",
         "frame_ensemble_video": "http://frame-ensemble-video:7008/predict",
-        "temporal_consistency_video": "http://temporal_consistency_video:7009/predict"
+        "temporal_consistency_video": "http://temporal-consistency-video:7009/predict"
       },
       "health_endpoints": {
-        "cross_efficient_vit": "http://cross_efficient_vit:7007/health",
+        "cross_efficient_vit": "http://video-detect:7001/health",
         "frame_ensemble_video": "http://frame-ensemble-video:7008/health",
-        "temporal_consistency_video": "http://temporal_consistency_video:7009/health"
+        "temporal_consistency_video": "http://temporal-consistency-video:7009/health"
       },
       "supported_extensions": [
         "*.mp4",
