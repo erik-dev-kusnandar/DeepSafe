@@ -225,18 +225,28 @@ def process_video_and_predict(
     frames_with_faces = 0
     frame_b64_list = []
     for f in frames_rgb:
-        model_frame, has_face = crop_or_full_frame(f)
+        # Full frame (essential for full AI generative video artifacts like Kling/Sora)
+        h_f, w_f = f.shape[:2]
+        max_d = 512
+        full_f = f
+        if max(h_f, w_f) > max_d:
+            r_scale = max_d / max(h_f, w_f)
+            full_f = cv2.resize(f, (int(w_f * r_scale), int(h_f * r_scale)), interpolation=cv2.INTER_AREA)
+        frame_b64_list.append(frame_to_base64(full_f))
+
+        # Face crop (if face detected)
+        crop_f, has_face = crop_or_full_frame(f)
         if has_face:
             frames_with_faces += 1
-        frame_b64_list.append(frame_to_base64(model_frame))
+            frame_b64_list.append(frame_to_base64(crop_f))
+
     logger.info(
-        f"Frames with cropped faces: {frames_with_faces}/{len(frames_rgb)}"
+        f"Frames analyzed: {len(frames_rgb)}, with cropped faces: {frames_with_faces}/{len(frames_rgb)}"
     )
 
     per_model_scores: Dict[str, List[float]] = {m: [] for m in IMAGE_MODEL_ENDPOINTS}
 
     for frame_idx, frame_b64 in enumerate(frame_b64_list):
-        frame_results = {}
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             future_map = {
                 executor.submit(
@@ -268,7 +278,11 @@ def process_video_and_predict(
             "details": "No model results",
         }
 
-    final_prob = float(np.mean(ensemble_probs))
+    # Max risk aggregation across sub-models prevents specialized detectors (e.g. NPR) from being diluted
+    avg_prob = float(np.mean(ensemble_probs))
+    max_prob = float(np.max(ensemble_probs))
+    final_prob = max_prob if max_prob >= 0.65 else avg_prob
+
     final_prediction = 1 if final_prob >= input_threshold else 0
     final_class_label = "fake" if final_prediction == 1 else "real"
 
